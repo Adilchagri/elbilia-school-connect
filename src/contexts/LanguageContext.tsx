@@ -1,190 +1,165 @@
-import React, { createContext, useContext, useState } from "react";
 
-type Language = "fr" | "ar" | "en";
+import React, { createContext, useContext, useState, ReactNode } from 'react';
 
-type TranslationKey = 
-  | "home"
-  | "ourSchool" 
-  | "educationalPrograms"
-  | "news" 
-  | "admissions"
-  | "contact"
-  | "preschool"
-  | "primary"
-  | "middle"
-  | "highSchool"
-  | "learnMore"
-  | "applyNow"
-  | "keyFigures"
-  | "students"
-  | "teachers"
-  | "successRate"
-  | "readMore"
-  | "welcomeMessage"
-  | "schoolIntro"
-  | "directorWord"
-  | "history"
-  | "values"
-  | "partnerships"
-  | "contactUs"
-  | "contactForm"
-  | "name"
-  | "email"
-  | "message"
-  | "send"
-  | "downloadBrochure"
-  | "signIn"
-  | "signOut"
-  | "signUp"
-  | "password"
-  | "fullName";
-
+// Define the translation type
 type Translations = {
-  [key in Language]: {
-    [key in TranslationKey]: string;
+  [key: string]: {
+    fr: string;
+    ar: string;
+    en: string;
   };
 };
 
+// Define translations
 const translations: Translations = {
-  fr: {
-    home: "Accueil",
-    ourSchool: "Notre École",
-    educationalPrograms: "Offre Scolaire",
-    news: "Actualités",
-    admissions: "Admissions",
-    contact: "Contact",
-    preschool: "Préscolaire",
-    primary: "Primaire",
-    middle: "Collège",
-    highSchool: "Lycée",
-    learnMore: "En savoir plus",
-    applyNow: "S'inscrire",
-    keyFigures: "Chiffres clés",
-    students: "Élèves",
-    teachers: "Enseignants",
-    successRate: "Taux de réussite",
-    readMore: "Lire plus",
-    welcomeMessage: "Bienvenue à Groupe Scolaire Elbilia",
-    schoolIntro: "École d'excellence pour un avenir brillant",
-    directorWord: "Mot du Directeur",
-    history: "Historique",
-    values: "Valeurs & pédagogie",
-    partnerships: "Partenariats",
-    contactUs: "Contactez-nous",
-    contactForm: "Formulaire de contact",
-    name: "Nom",
-    email: "Email",
-    message: "Message",
-    send: "Envoyer",
-    downloadBrochure: "Télécharger la brochure",
-    signIn: "Se connecter",
-    signOut: "Se déconnecter",
-    signUp: "S'inscrire",
-    password: "Mot de passe",
-    fullName: "Nom complet"
+  home: {
+    fr: "Accueil",
+    ar: "الرئيسية",
+    en: "Home"
   },
-  ar: {
-    home: "الرئيسية",
-    ourSchool: "مدرستنا",
-    educationalPrograms: "البرامج التعليمية",
-    news: "الأخبار",
-    admissions: "القبول",
-    contact: "اتصل بنا",
-    preschool: "روض الأطفال",
-    primary: "الابتدائية",
-    middle: "الإعدادية",
-    highSchool: "الثانوية",
-    learnMore: "اقرأ المزيد",
-    applyNow: "التسجيل الآن",
-    keyFigures: "أرقام رئيسية",
-    students: "الطلاب",
-    teachers: "المعلمون",
-    successRate: "معدل النجاح",
-    readMore: "اقرأ المزيد",
-    welcomeMessage: "مرحبا بكم في مجموعة البيليا المدرسية",
-    schoolIntro: "مدرسة التميز لمستقبل مشرق",
-    directorWord: "كلمة المدير",
-    history: "تاريخنا",
-    values: "قيمنا ومنهجنا",
-    partnerships: "شراكاتنا",
-    contactUs: "اتصل بنا",
-    contactForm: "نموذج الاتصال",
-    name: "الاسم",
-    email: "البريد الإلكتروني",
-    message: "الرسالة",
-    send: "إرسال",
-    downloadBrochure: "تنزيل الكتيب",
-    signIn: "تسجيل الدخول",
-    signOut: "تسجيل الخروج",
-    signUp: "إنشاء حساب",
-    password: "كلمة المرور",
-    fullName: "الاسم الكامل"
+  ourSchool: {
+    fr: "Notre École",
+    ar: "مدرستنا",
+    en: "Our School"
   },
-  en: {
-    home: "Home",
-    ourSchool: "Our School",
-    educationalPrograms: "Educational Programs",
-    news: "News",
-    admissions: "Admissions",
-    contact: "Contact",
-    preschool: "Preschool",
-    primary: "Primary",
-    middle: "Middle School",
-    highSchool: "High School",
-    learnMore: "Learn More",
-    applyNow: "Apply Now",
-    keyFigures: "Key Figures",
-    students: "Students",
-    teachers: "Teachers",
-    successRate: "Success Rate",
-    readMore: "Read More",
-    welcomeMessage: "Welcome to Groupe Scolaire Elbilia",
-    schoolIntro: "School of excellence for a bright future",
-    directorWord: "Director's Word",
-    history: "History",
-    values: "Values & Pedagogy",
-    partnerships: "Partnerships",
-    contactUs: "Contact Us",
-    contactForm: "Contact Form",
-    name: "Name",
-    email: "Email",
-    message: "Message",
-    send: "Send",
-    downloadBrochure: "Download Brochure",
-    signIn: "Sign In",
-    signOut: "Sign Out",
-    signUp: "Sign Up",
-    password: "Password",
-    fullName: "Full Name"
+  educationalPrograms: {
+    fr: "Programmes Éducatifs",
+    ar: "البرامج التعليمية",
+    en: "Educational Programs"
   },
+  news: {
+    fr: "Actualités",
+    ar: "الأخبار",
+    en: "News"
+  },
+  admissions: {
+    fr: "Admissions",
+    ar: "القبول",
+    en: "Admissions"
+  },
+  contact: {
+    fr: "Contact",
+    ar: "اتصل بنا",
+    en: "Contact"
+  },
+  signIn: {
+    fr: "Se Connecter",
+    ar: "تسجيل الدخول",
+    en: "Sign In"
+  },
+  signOut: {
+    fr: "Se Déconnecter",
+    ar: "تسجيل الخروج",
+    en: "Sign Out"
+  },
+  directorWord: {
+    fr: "Mot du Directeur",
+    ar: "كلمة المدير",
+    en: "Director's Word"
+  },
+  directorSubtitle: {
+    fr: "Un message de notre directeur sur notre vision éducative",
+    ar: "رسالة من مديرنا حول رؤيتنا التعليمية",
+    en: "A message from our director about our educational vision"
+  },
+  history: {
+    fr: "Histoire",
+    ar: "التاريخ",
+    en: "History"
+  },
+  values: {
+    fr: "Valeurs",
+    ar: "القيم",
+    en: "Values"
+  },
+  partnerships: {
+    fr: "Partenariats",
+    ar: "الشراكات",
+    en: "Partnerships"
+  },
+  preschool: {
+    fr: "Maternelle",
+    ar: "الحضانة",
+    en: "Preschool"
+  },
+  primary: {
+    fr: "Primaire",
+    ar: "الابتدائية",
+    en: "Primary"
+  },
+  middle: {
+    fr: "Collège",
+    ar: "الإعدادية",
+    en: "Middle School"
+  },
+  highSchool: {
+    fr: "Lycée",
+    ar: "الثانوية",
+    en: "High School"
+  },
+  readMore: {
+    fr: "Lire plus",
+    ar: "قراءة المزيد",
+    en: "Read more"
+  },
+  learnMore: {
+    fr: "En savoir plus",
+    ar: "معرفة المزيد",
+    en: "Learn more"
+  },
+  applyNow: {
+    fr: "S'inscrire",
+    ar: "سجل الآن",
+    en: "Apply Now"
+  },
+  welcomeMessage: {
+    fr: "Bienvenue à l'École Elbilia IPSE Khouribga",
+    ar: "مرحبا بكم في مدرسة البيليا IPSE خريبكة",
+    en: "Welcome to Elbilia IPSE School Khouribga"
+  },
+  schoolIntro: {
+    fr: "Une éducation d'excellence pour préparer les leaders de demain",
+    ar: "تعليم متميز لإعداد قادة الغد",
+    en: "Excellence in education to prepare tomorrow's leaders"
+  }
 };
 
-interface LanguageContextType {
-  language: Language;
-  setLanguage: (language: Language) => void;
-  t: (key: TranslationKey) => string;
-}
+// Define language context type
+type LanguageContextType = {
+  language: 'fr' | 'ar' | 'en';
+  setLanguage: (language: 'fr' | 'ar' | 'en') => void;
+  t: (key: string) => string;
+};
 
+// Create context
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
-export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [language, setLanguage] = useState<Language>("fr");
+// Create provider component
+export const LanguageProvider = ({ children }: { children: ReactNode }) => {
+  const [language, setLanguage] = useState<'fr' | 'ar' | 'en'>('fr');
 
-  const t = (key: TranslationKey): string => {
-    return translations[language][key];
+  // Translation function
+  const t = (key: string): string => {
+    if (translations[key]) {
+      return translations[key][language];
+    }
+    return key; // Fallback if translation not found
   };
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage, t }}>
-      {children}
+      <div className={language === 'ar' ? 'font-arabic' : 'font-sans'}>
+        {children}
+      </div>
     </LanguageContext.Provider>
   );
 };
 
+// Custom hook for using language context
 export const useLanguage = (): LanguageContextType => {
   const context = useContext(LanguageContext);
   if (context === undefined) {
-    throw new Error("useLanguage must be used within a LanguageProvider");
+    throw new Error('useLanguage must be used within a LanguageProvider');
   }
   return context;
 };
