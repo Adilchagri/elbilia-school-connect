@@ -21,6 +21,13 @@ import NewsPage from "./pages/NewsPage";
 import AdmissionsPage from "./pages/AdmissionsPage";
 import ContactPage from "./pages/ContactPage";
 
+// Admin pages
+import AdminIndex from "./pages/admin/AdminIndex";
+import ContentManagement from "./pages/admin/ContentManagement";
+import AdmissionsManagement from "./pages/admin/AdmissionsManagement";
+import UserManagement from "./pages/admin/UserManagement";
+import SettingsPage from "./pages/admin/SettingsPage";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -48,6 +55,13 @@ const App = () => (
               <Route path="/news" element={<NewsPage />} />
               <Route path="/admissions" element={<AdmissionsPage />} />
               <Route path="/contact" element={<ContactPage />} />
+              
+              {/* Admin Routes */}
+              <Route path="/admin" element={<AdminIndex />} />
+              <Route path="/admin/content" element={<ContentManagement />} />
+              <Route path="/admin/admissions" element={<AdmissionsManagement />} />
+              <Route path="/admin/users" element={<UserManagement />} />
+              <Route path="/admin/settings" element={<SettingsPage />} />
               
               <Route path="*" element={<NotFound />} />
             </Routes>

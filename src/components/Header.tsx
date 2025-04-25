@@ -1,6 +1,7 @@
+
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { Menu, X, ChevronDown } from "lucide-react";
+import { Menu, X, ChevronDown, Settings } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -115,6 +116,13 @@ const Header = () => {
             <Link to="/contact" className="font-medium hover:text-elbilia-blue transition-colors">
               {t("contact")}
             </Link>
+            
+            {user && (
+              <Link to="/admin" className="flex items-center font-medium hover:text-elbilia-blue transition-colors">
+                <Settings className="mr-1 h-4 w-4" />
+                {t("admin")}
+              </Link>
+            )}
             
             <button
               onClick={handleAuthClick}
@@ -285,6 +293,26 @@ const Header = () => {
               >
                 {t("contact")}
               </Link>
+              
+              {user && (
+                <Link 
+                  to="/admin" 
+                  className="font-medium hover:text-elbilia-blue transition-colors flex items-center"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <Settings className="mr-1 h-4 w-4" /> {t("admin")}
+                </Link>
+              )}
+              
+              <button
+                onClick={() => {
+                  handleAuthClick();
+                  setMobileMenuOpen(false);
+                }}
+                className="font-medium hover:text-elbilia-blue transition-colors text-left"
+              >
+                {user ? t('signOut') : t('signIn')}
+              </button>
               
               {/* Mobile Language Switcher */}
               <div className="flex space-x-2 pt-2">

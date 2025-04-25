@@ -5,115 +5,79 @@ import PageHeader from "../../components/PageHeader";
 import { useLanguage } from "../../contexts/LanguageContext";
 
 const PreschoolPage = () => {
-  const { t, language } = useLanguage();
-
-  const features = [
-    {
-      title: language === "fr" ? "Environnement chaleureux" : language === "ar" ? "بيئة دافئة" : "Warm Environment",
-      description: language === "fr" 
-        ? "Un cadre sûr et accueillant où les enfants se sentent aimés et valorisés" 
-        : language === "ar" 
-          ? "بيئة آمنة وترحيبية حيث يشعر الأطفال بالحب والتقدير" 
-          : "A safe and welcoming setting where children feel loved and valued"
-    },
-    {
-      title: language === "fr" ? "Programme ludique" : language === "ar" ? "برنامج ممتع" : "Playful Curriculum",
-      description: language === "fr" 
-        ? "Apprentissage par le jeu pour développer la curiosité et l'amour d'apprendre" 
-        : language === "ar" 
-          ? "التعلم من خلال اللعب لتطوير الفضول وحب التعلم" 
-          : "Learning through play to develop curiosity and love for learning"
-    },
-    {
-      title: language === "fr" ? "Développement global" : language === "ar" ? "تطوير شامل" : "Holistic Development",
-      description: language === "fr" 
-        ? "Focus sur les compétences sociales, émotionnelles, physiques et intellectuelles" 
-        : language === "ar" 
-          ? "التركيز على المهارات الاجتماعية والعاطفية والجسدية والفكرية" 
-          : "Focus on social, emotional, physical, and intellectual skills"
-    },
-    {
-      title: language === "fr" ? "Trilinguisme précoce" : language === "ar" ? "تعدد اللغات المبكر" : "Early Trilingualism",
-      description: language === "fr" 
-        ? "Introduction ludique à l'arabe, au français et à l'anglais" 
-        : language === "ar" 
-          ? "مقدمة ممتعة للغة العربية والفرنسية والإنجليزية" 
-          : "Playful introduction to Arabic, French, and English"
-    }
-  ];
-
+  const { t } = useLanguage();
+  
   return (
     <PageLayout>
-      <PageHeader 
-        title={t("preschool")}
-        subtitle={language === "fr" 
-          ? "Une fondation solide pour l'apprentissage et le développement" 
-          : language === "ar" 
-            ? "أساس قوي للتعلم والتطوير" 
-            : "A strong foundation for learning and development"
-        }
-        background="bg-gradient-to-r from-pink-500 to-purple-500"
-      />
-      
-      <div className="container-custom py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center mb-16">
-          <div>
-            <img 
-              src="https://images.unsplash.com/photo-1526634332515-d56c5fd16991?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" 
-              alt={t("preschool")}
-              className="rounded-lg shadow-lg w-full"
-            />
-          </div>
-          <div className={`${language === "ar" ? "text-right" : "text-left"}`}>
-            <h2 className="text-2xl font-bold mb-6 text-elbilia-blue">
-              {language === "fr" 
-                ? "Programme Préscolaire (3-6 ans)" 
-                : language === "ar" 
-                  ? "برنامج ما قبل المدرسة (3-6 سنوات)" 
-                  : "Preschool Program (Ages 3-6)"
-              }
-            </h2>
-            <p className="mb-4 text-gray-700">
-              {language === "fr" 
-                ? "Notre programme préscolaire offre un début joyeux et stimulant au parcours éducatif de votre enfant. Dans un environnement chaleureux et accueillant, les jeunes apprenants développent des compétences essentielles à travers des activités ludiques et engageantes."
-                : language === "ar" 
-                  ? "يوفر برنامجنا لمرحلة ما قبل المدرسة بداية مرحة ومحفزة للرحلة التعليمية لطفلك. في بيئة دافئة وترحيبية، يطور المتعلمون الصغار المهارات الأساسية من خلال الأنشطة الممتعة والجذابة."
-                  : "Our preschool program offers a joyful and stimulating start to your child's educational journey. In a warm and welcoming environment, young learners develop essential skills through playful and engaging activities."
-              }
-            </p>
-            <p className="text-gray-700">
-              {language === "fr" 
-                ? "Nos éducateurs qualifiés encouragent la curiosité naturelle des enfants, favorisant leur développement intellectuel, social, émotionnel et physique. Le programme intègre des jeux structurés, des activités créatives, et une introduction douce aux langues, aux nombres et aux concepts scientifiques."
-                : language === "ar" 
-                  ? "يشجع معلمونا المؤهلون الفضول الطبيعي للأطفال، معززين نموهم الفكري والاجتماعي والعاطفي والجسدي. يتضمن البرنامج ألعابًا منظمة، وأنشطة إبداعية، ومقدمة لطيفة للغات والأرقام والمفاهيم العلمية."
-                  : "Our qualified educators encourage children's natural curiosity, fostering their intellectual, social, emotional, and physical development. The program incorporates structured play, creative activities, and a gentle introduction to languages, numbers, and scientific concepts."
-              }
-            </p>
-          </div>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          {features.map((feature, index) => (
-            <div key={index} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-              <h3 className="text-lg font-bold text-elbilia-blue mb-3">{feature.title}</h3>
-              <p className="text-gray-700">{feature.description}</p>
+      <PageHeader title={t("preschool")} description={t("preschoolDescription")} />
+      <div className="container-custom py-10">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex flex-col md:flex-row gap-8">
+            <div className="w-full md:w-2/3">
+              <h2 className="text-2xl font-bold text-elbilia-blue mb-4">{t("preschoolOverviewTitle")}</h2>
+              <div className="prose max-w-none mb-8">
+                <p className="mb-4">{t("preschoolOverviewP1")}</p>
+                <p>{t("preschoolOverviewP2")}</p>
+              </div>
+              
+              <h2 className="text-2xl font-bold text-elbilia-blue mb-4">{t("curriculumTitle")}</h2>
+              <div className="prose max-w-none mb-8">
+                <ul className="space-y-2">
+                  <li>{t("preschoolCurriculum1")}</li>
+                  <li>{t("preschoolCurriculum2")}</li>
+                  <li>{t("preschoolCurriculum3")}</li>
+                  <li>{t("preschoolCurriculum4")}</li>
+                  <li>{t("preschoolCurriculum5")}</li>
+                </ul>
+              </div>
+              
+              <h2 className="text-2xl font-bold text-elbilia-blue mb-4">{t("dailyScheduleTitle")}</h2>
+              <div className="prose max-w-none">
+                <p className="mb-4">{t("dailyScheduleDescription")}</p>
+                <div className="bg-gray-100 p-4 rounded-lg">
+                  <ul className="space-y-2">
+                    <li><strong>8:30 - 9:00</strong>: {t("morningArrival")}</li>
+                    <li><strong>9:00 - 10:30</strong>: {t("morningActivities")}</li>
+                    <li><strong>10:30 - 11:00</strong>: {t("snackTime")}</li>
+                    <li><strong>11:00 - 12:00</strong>: {t("outdoorPlay")}</li>
+                    <li><strong>12:00 - 13:00</strong>: {t("lunchTime")}</li>
+                    <li><strong>13:00 - 14:30</strong>: {t("napRest")}</li>
+                    <li><strong>14:30 - 16:00</strong>: {t("afternoonActivities")}</li>
+                    <li><strong>16:00 - 16:30</strong>: {t("departureTime")}</li>
+                  </ul>
+                </div>
+              </div>
             </div>
-          ))}
-        </div>
-        
-        <div className={`${language === "ar" ? "text-right" : "text-left"}`}>
-          <h3 className="text-xl font-bold mb-4 text-elbilia-blue">
-            {language === "fr" ? "Un jour typique" : language === "ar" ? "يوم نموذجي" : "A Typical Day"}
-          </h3>
-          <ul className="list-disc pl-5 space-y-2 text-gray-700 mb-8">
-            <li>{language === "fr" ? "Accueil et cercle du matin" : language === "ar" ? "الترحيب ودائرة الصباح" : "Welcome and morning circle"}</li>
-            <li>{language === "fr" ? "Activités dirigées par l'enseignant" : language === "ar" ? "أنشطة بقيادة المعلم" : "Teacher-led activities"}</li>
-            <li>{language === "fr" ? "Jeux libres et centre d'apprentissage" : language === "ar" ? "ألعاب حرة ومركز التعلم" : "Free play and learning centers"}</li>
-            <li>{language === "fr" ? "Collation et pause" : language === "ar" ? "وجبة خفيفة واستراحة" : "Snack and break time"}</li>
-            <li>{language === "fr" ? "Activités en plein air" : language === "ar" ? "أنشطة في الهواء الطلق" : "Outdoor activities"}</li>
-            <li>{language === "fr" ? "Arts et musique" : language === "ar" ? "الفنون والموسيقى" : "Arts and music"}</li>
-            <li>{language === "fr" ? "Histoires et temps calme" : language === "ar" ? "القصص ووقت الهدوء" : "Stories and quiet time"}</li>
-          </ul>
+            <div className="w-full md:w-1/3">
+              <div className="sticky top-24">
+                <div className="bg-white shadow-md rounded-lg overflow-hidden">
+                  <img 
+                    src="/placeholder.svg" 
+                    alt={t("preschoolClassroomAlt")} 
+                    className="w-full h-48 object-cover"
+                  />
+                  <div className="p-6">
+                    <h3 className="text-xl font-bold text-elbilia-blue mb-3">{t("keyInformationTitle")}</h3>
+                    <ul className="space-y-2 text-gray-700">
+                      <li><strong>{t("ageRange")}:</strong> 3-5 {t("years")}</li>
+                      <li><strong>{t("classSize")}:</strong> 15-18 {t("students")}</li>
+                      <li><strong>{t("languages")}:</strong> {t("preschoolLanguages")}</li>
+                      <li><strong>{t("schedule")}:</strong> {t("fullTime")}</li>
+                    </ul>
+                    
+                    <div className="mt-6">
+                      <a 
+                        href="/admissions" 
+                        className="block w-full bg-elbilia-blue text-white text-center py-3 px-4 rounded-md hover:bg-elbilia-blue/90 transition-colors"
+                      >
+                        {t("applyNow")}
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </PageLayout>
