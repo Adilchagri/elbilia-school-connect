@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState } from "react";
 
 type Language = "fr" | "ar" | "en";
@@ -33,7 +32,12 @@ type TranslationKey =
   | "email"
   | "message"
   | "send"
-  | "downloadBrochure";
+  | "downloadBrochure"
+  | "signIn"
+  | "signOut"
+  | "signUp"
+  | "password"
+  | "fullName";
 
 type Translations = {
   [key in Language]: {
@@ -72,7 +76,12 @@ const translations: Translations = {
     email: "Email",
     message: "Message",
     send: "Envoyer",
-    downloadBrochure: "Télécharger la brochure"
+    downloadBrochure: "Télécharger la brochure",
+    signIn: "Se connecter",
+    signOut: "Se déconnecter",
+    signUp: "S'inscrire",
+    password: "Mot de passe",
+    fullName: "Nom complet"
   },
   ar: {
     home: "الرئيسية",
@@ -104,7 +113,12 @@ const translations: Translations = {
     email: "البريد الإلكتروني",
     message: "الرسالة",
     send: "إرسال",
-    downloadBrochure: "تنزيل الكتيب"
+    downloadBrochure: "تنزيل الكتيب",
+    signIn: "تسجيل الدخول",
+    signOut: "تسجيل الخروج",
+    signUp: "إنشاء حساب",
+    password: "كلمة المرور",
+    fullName: "الاسم الكامل"
   },
   en: {
     home: "Home",
@@ -136,7 +150,12 @@ const translations: Translations = {
     email: "Email",
     message: "Message",
     send: "Send",
-    downloadBrochure: "Download Brochure"
+    downloadBrochure: "Download Brochure",
+    signIn: "Sign In",
+    signOut: "Sign Out",
+    signUp: "Sign Up",
+    password: "Password",
+    fullName: "Full Name"
   },
 };
 

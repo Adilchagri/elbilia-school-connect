@@ -1,13 +1,16 @@
-
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Menu, X, ChevronDown } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
+import { useAuth } from "../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const Header = () => {
   const { language, setLanguage, t } = useLanguage();
+  const { user, signOut } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState("");
+  const navigate = useNavigate();
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
@@ -23,6 +26,14 @@ const Header = () => {
 
   const changeLanguage = (lang: "fr" | "ar" | "en") => {
     setLanguage(lang);
+  };
+
+  const handleAuthClick = () => {
+    if (user) {
+      signOut();
+    } else {
+      navigate('/auth');
+    }
   };
 
   return (
@@ -104,6 +115,13 @@ const Header = () => {
             <Link to="/contact" className="font-medium hover:text-elbilia-blue transition-colors">
               {t("contact")}
             </Link>
+            
+            <button
+              onClick={handleAuthClick}
+              className="font-medium hover:text-elbilia-blue transition-colors"
+            >
+              {user ? t('signOut') : t('signIn')}
+            </button>
           </nav>
 
           {/* Language Switcher and Mobile Menu Button */}
