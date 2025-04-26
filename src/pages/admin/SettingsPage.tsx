@@ -6,13 +6,30 @@ import { useLanguage } from "../../contexts/LanguageContext";
 import { useAuth } from "../../contexts/AuthContext";
 import { useToast } from "../../hooks/use-toast";
 
+interface SocialMedia {
+  facebook: string;
+  twitter: string;
+  instagram: string;
+  linkedin: string;
+}
+
+interface SettingsState {
+  siteName: string;
+  contactEmail: string;
+  contactPhone: string;
+  address: string;
+  socialMedia: SocialMedia;
+  admissionsOpen: boolean;
+  maintenanceMode: boolean;
+}
+
 const SettingsPage = () => {
   const { t } = useLanguage();
   const { user } = useAuth();
   const { toast } = useToast();
   
   // Mock settings data
-  const [settings, setSettings] = useState({
+  const [settings, setSettings] = useState<SettingsState>({
     siteName: "Elbilia IPSE",
     contactEmail: "contact@elbilia.edu",
     contactPhone: "+212 5XX-XXXXXX",
@@ -49,13 +66,15 @@ const SettingsPage = () => {
     if (name.includes('.')) {
       // Handle nested objects like socialMedia.facebook
       const [parent, child] = name.split('.');
-      setSettings(prev => ({
-        ...prev,
-        [parent]: {
-          ...prev[parent as keyof typeof prev],
-          [child]: value,
-        }
-      }));
+      if (parent === 'socialMedia') {
+        setSettings(prev => ({
+          ...prev,
+          socialMedia: {
+            ...prev.socialMedia,
+            [child]: value,
+          }
+        }));
+      }
     } else {
       // Handle checkbox
       if (type === 'checkbox') {
