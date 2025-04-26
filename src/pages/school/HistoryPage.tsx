@@ -1,44 +1,35 @@
 
 import React from "react";
+import { useQuery } from "@tanstack/react-query";
 import PageLayout from "../../components/PageLayout";
 import PageHeader from "../../components/PageHeader";
 import { useLanguage } from "../../contexts/LanguageContext";
+import { getPageContent } from "../../lib/content";
 
 const HistoryPage = () => {
   const { t } = useLanguage();
   
+  const { data: pageData } = useQuery({
+    queryKey: ['pageContent', 'history'],
+    queryFn: () => getPageContent('history')
+  });
+
+  const content = pageData?.content || {};
+  
   return (
     <PageLayout>
-      <PageHeader title={t("history")} description={t("historyDescription")} />
+      <PageHeader title={t("history")} description={content.description} />
       <div className="container-custom py-10">
         <div className="max-w-4xl mx-auto">
           <div className="prose max-w-none">
-            <h2 className="text-2xl font-bold text-elbilia-blue mb-4">{t("foundingTitle")}</h2>
-            <p className="mb-4">{t("foundingP1")}</p>
-            <p className="mb-6">{t("foundingP2")}</p>
-            
-            <h2 className="text-2xl font-bold text-elbilia-blue mb-4">{t("growthTitle")}</h2>
-            <p className="mb-4">{t("growthP1")}</p>
-            <p className="mb-6">{t("growthP2")}</p>
-            
-            <h2 className="text-2xl font-bold text-elbilia-blue mb-4">{t("milestonesTitle")}</h2>
-            <ul className="space-y-3">
-              <li className="flex items-start">
-                <span className="font-bold mr-2">1985:</span> {t("milestone1")}
-              </li>
-              <li className="flex items-start">
-                <span className="font-bold mr-2">1995:</span> {t("milestone2")}
-              </li>
-              <li className="flex items-start">
-                <span className="font-bold mr-2">2005:</span> {t("milestone3")}
-              </li>
-              <li className="flex items-start">
-                <span className="font-bold mr-2">2015:</span> {t("milestone4")}
-              </li>
-              <li className="flex items-start">
-                <span className="font-bold mr-2">2023:</span> {t("milestone5")}
-              </li>
-            </ul>
+            <div className="space-y-8">
+              {content.milestones?.map((milestone: { year: number; text: string }, index: number) => (
+                <div key={index} className="flex items-start gap-4">
+                  <span className="font-bold text-xl text-elbilia-blue">{milestone.year}</span>
+                  <p className="flex-1">{milestone.text}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
