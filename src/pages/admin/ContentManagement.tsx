@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import PageLayout from "../../components/PageLayout";
@@ -15,7 +16,7 @@ import { useToast } from "../../hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 interface ContentSection {
-  id: number;
+  id: string;  // Changed from number to string to match UUID from Supabase
   page_key: string;
   title: string;
   status: string;
@@ -67,14 +68,14 @@ const ContentManagement = () => {
     return <Navigate to="/auth" replace />;
   }
 
-  const handleEdit = (id: number) => {
+  const handleEdit = (id: string) => {  // Updated parameter type to string
     toast({
       title: t("editStarted"),
       description: `${t("editingContent")} ID: ${id}`,
     });
   };
 
-  const handlePublish = (id: number) => {
+  const handlePublish = (id: string) => {  // Updated parameter type to string
     toast({
       title: t("contentPublished"),
       description: `${t("contentWithId")} ${id} ${t("hasBeenPublished")}`,
