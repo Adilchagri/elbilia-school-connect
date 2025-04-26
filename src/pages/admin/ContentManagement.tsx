@@ -12,7 +12,7 @@ import {
   TableCell 
 } from "../../components/ui/table";
 import { useToast } from "../../hooks/use-toast";
-import { supabase } from "../../supabase";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ContentSection {
   id: number;
@@ -61,7 +61,6 @@ const ContentManagement = () => {
     setLoading(false);
   };
 
-  // Check if user is authenticated and has admin privileges
   const isAdmin = user ? true : false;
 
   if (!isAdmin) {
@@ -69,7 +68,6 @@ const ContentManagement = () => {
   }
 
   const handleEdit = (id: number) => {
-    // In a real application, this would navigate to an edit page or open a modal
     toast({
       title: t("editStarted"),
       description: `${t("editingContent")} ID: ${id}`,
