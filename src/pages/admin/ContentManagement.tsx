@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import PageLayout from "../../components/PageLayout";
 import { useLanguage } from "../../contexts/LanguageContext";
 import { useAuth } from "../../contexts/AuthContext";
@@ -27,6 +27,7 @@ const ContentManagement = () => {
   const { t } = useLanguage();
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("school");
   const [loading, setLoading] = useState(true);
   const [sections, setSections] = useState<ContentSection[]>([]);
@@ -69,10 +70,17 @@ const ContentManagement = () => {
   }
 
   const handleEdit = (id: string) => {  // Updated parameter type to string
-    toast({
-      title: t("editStarted"),
-      description: `${t("editingContent")} ID: ${id}`,
-    });
+    // Find the page key for the selected content
+    const contentToEdit = sections.find(section => section.id === id);
+    if (contentToEdit) {
+      navigate(`/admin/content/edit?pageKey=${contentToEdit.page_key}`);
+    } else {
+      toast({
+        title: t("error"),
+        description: t("contentNotFound"),
+        variant: "destructive"
+      });
+    }
   };
 
   const handlePublish = (id: string) => {  // Updated parameter type to string

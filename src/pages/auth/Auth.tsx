@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { InfoIcon } from 'lucide-react';
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -21,14 +23,24 @@ export default function Auth() {
     try {
       if (isLogin) {
         await signIn(email, password);
+        navigate('/');
       } else {
         await signUp(email, password, fullName);
         toast({
           title: "Success",
           description: "Account created successfully. Please check your email for verification.",
         });
+        
+        // In a development environment, we can automatically log in after signup
+        // This is just for demonstration purposes
+        try {
+          await signIn(email, password);
+          navigate('/');
+        } catch (innerError) {
+          // Silent catch - user will need to verify email first
+          console.log("User needs to verify email before logging in");
+        }
       }
-      navigate('/');
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -46,6 +58,16 @@ export default function Auth() {
             {isLogin ? 'Sign in to your account' : 'Create a new account'}
           </h2>
         </div>
+        
+        <Alert className="bg-blue-50 border-blue-200">
+          <InfoIcon className="h-4 w-4 text-blue-600" />
+          <AlertTitle>Demo credentials</AlertTitle>
+          <AlertDescription>
+            Email: admin@elbilia.com<br />
+            Password: password123
+          </AlertDescription>
+        </Alert>
+
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm space-y-4">
             {!isLogin && (

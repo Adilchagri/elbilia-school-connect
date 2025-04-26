@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -27,6 +26,7 @@ import ContentManagement from "./pages/admin/ContentManagement";
 import AdmissionsManagement from "./pages/admin/AdmissionsManagement";
 import UserManagement from "./pages/admin/UserManagement";
 import SettingsPage from "./pages/admin/SettingsPage";
+import ContentEditor from "./pages/admin/ContentEditor";
 
 const queryClient = new QueryClient();
 
@@ -59,6 +59,7 @@ const App = () => (
               {/* Admin Routes */}
               <Route path="/admin" element={<AdminIndex />} />
               <Route path="/admin/content" element={<ContentManagement />} />
+              <Route path="/admin/content/edit" element={<ContentEditor />} />
               <Route path="/admin/admissions" element={<AdmissionsManagement />} />
               <Route path="/admin/users" element={<UserManagement />} />
               <Route path="/admin/settings" element={<SettingsPage />} />
