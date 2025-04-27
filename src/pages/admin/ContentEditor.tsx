@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "../../hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { getPageContent, updatePageContent, PageContent } from "@/lib/content";
@@ -26,17 +27,24 @@ const ContentEditor = () => {
   const [content, setContent] = useState<PageContent | null>(null);
   const [jsonContent, setJsonContent] = useState("");
   const [title, setTitle] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!user) {
+      navigate('/auth');
+      return;
+    }
+
     if (pageKey) {
       fetchContent(pageKey);
     } else {
       setLoading(false);
     }
-  }, [pageKey]);
+  }, [pageKey, user, navigate]);
 
   const fetchContent = async (key: string) => {
     setLoading(true);
+    setError(null);
     try {
       const data = await getPageContent(key);
       if (data) {
@@ -44,14 +52,14 @@ const ContentEditor = () => {
         setTitle(data.title);
         setJsonContent(JSON.stringify(data.content, null, 2));
       }
-      setLoading(false);
-    } catch (error) {
-      console.error("Error fetching content:", error);
+    } catch (error: any) {
+      setError(error.message);
       toast({
         title: t("error"),
         description: t("errorFetchingContent"),
         variant: "destructive"
       });
+    } finally {
       setLoading(false);
     }
   };
@@ -60,17 +68,18 @@ const ContentEditor = () => {
     if (!pageKey) return;
     
     setSaving(true);
+    setError(null);
     try {
       let parsedContent;
       try {
         parsedContent = JSON.parse(jsonContent);
       } catch (e) {
+        setError(t("invalidJson"));
         toast({
           title: t("error"),
           description: t("invalidJson"),
           variant: "destructive"
         });
-        setSaving(false);
         return;
       }
       
@@ -82,24 +91,21 @@ const ContentEditor = () => {
         });
         navigate("/admin/content");
       } else {
-        toast({
-          title: t("error"),
-          description: t("errorUpdatingContent"),
-          variant: "destructive"
-        });
+        throw new Error(t("errorUpdatingContent"));
       }
-    } catch (error) {
+    } catch (error: any) {
+      setError(error.message);
       toast({
         title: t("error"),
-        description: t("errorUpdatingContent"),
+        description: error.message,
         variant: "destructive"
       });
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
   };
 
   if (!user) {
-    navigate("/auth");
     return null;
   }
 
@@ -111,10 +117,27 @@ const ContentEditor = () => {
             <h1 className="text-3xl font-bold text-elbilia-blue">
               {pageKey ? t("editContent") : t("createContent")}
             </h1>
-            <Button onClick={() => navigate("/admin/content")}>
-              {t("back")}
-            </Button>
+            <div className="space-x-4">
+              <Button 
+                variant="outline" 
+                onClick={() => navigate("/admin/content")}
+              >
+                {t("cancel")}
+              </Button>
+              <Button 
+                onClick={handleSave} 
+                disabled={saving || loading}
+              >
+                {saving ? t("saving") : t("saveChanges")}
+              </Button>
+            </div>
           </div>
+
+          {error && (
+            <Alert variant="destructive" className="mb-6">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
 
           {loading ? (
             <div className="flex justify-center items-center h-64">
@@ -144,13 +167,9 @@ const ContentEditor = () => {
                       className="min-h-[400px] font-mono"
                       placeholder="{}"
                     />
-                    <p className="text-sm text-gray-500">{t("editJsonInstructions")}</p>
-                  </div>
-
-                  <div className="flex justify-end">
-                    <Button onClick={handleSave} disabled={saving}>
-                      {saving ? t("saving") : t("saveChanges")}
-                    </Button>
+                    <p className="text-sm text-gray-500">
+                      {t("editJsonInstructions")}
+                    </p>
                   </div>
                 </div>
               </CardContent>

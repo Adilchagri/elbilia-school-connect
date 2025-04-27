@@ -14,81 +14,78 @@ import {
 } from "../../components/ui/table";
 import { useToast } from "../../hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 interface ContentSection {
-  id: string;  // Changed from number to string to match UUID from Supabase
+  id: string;
   page_key: string;
   title: string;
   status: string;
   lastUpdated: string;
 }
 
+const PAGE_KEYS = {
+  'home': 'Accueil',
+  'school': 'Notre École',
+  'programs': 'Programmes Éducatifs',
+  'news': 'Actualités',
+  'admissions': 'Admissions',
+  'contact': 'Contact'
+};
+
 const ContentManagement = () => {
   const { t } = useLanguage();
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("school");
   const [loading, setLoading] = useState(true);
   const [sections, setSections] = useState<ContentSection[]>([]);
 
   useEffect(() => {
-    fetchContent();
-  }, []);
-
-  const fetchContent = async () => {
-    const { data, error } = await supabase
-      .from('page_content')
-      .select('*')
-      .order('page_key');
-
-    if (error) {
-      toast({
-        title: t("error"),
-        description: t("errorFetchingContent"),
-        variant: "destructive"
-      });
+    if (!user) {
+      navigate('/auth');
       return;
     }
+    fetchContent();
+  }, [user, navigate]);
 
-    const formattedData = data.map((item) => ({
-      id: item.id,
-      page_key: item.page_key,
-      title: item.title,
-      status: "Published",
-      lastUpdated: new Date(item.updated_at).toLocaleDateString()
-    }));
+  const fetchContent = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('page_content')
+        .select('*')
+        .order('page_key');
 
-    setSections(formattedData);
-    setLoading(false);
-  };
+      if (error) throw error;
 
-  const isAdmin = user ? true : false;
+      const formattedData = data.map((item) => ({
+        id: item.id,
+        page_key: item.page_key,
+        title: PAGE_KEYS[item.page_key as keyof typeof PAGE_KEYS] || item.title,
+        status: "Published",
+        lastUpdated: new Date(item.updated_at).toLocaleDateString()
+      }));
 
-  if (!isAdmin) {
-    return <Navigate to="/auth" replace />;
-  }
-
-  const handleEdit = (id: string) => {  // Updated parameter type to string
-    // Find the page key for the selected content
-    const contentToEdit = sections.find(section => section.id === id);
-    if (contentToEdit) {
-      navigate(`/admin/content/edit?pageKey=${contentToEdit.page_key}`);
-    } else {
+      setSections(formattedData);
+    } catch (error: any) {
       toast({
         title: t("error"),
-        description: t("contentNotFound"),
+        description: error.message,
         variant: "destructive"
       });
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handlePublish = (id: string) => {  // Updated parameter type to string
-    toast({
-      title: t("contentPublished"),
-      description: `${t("contentWithId")} ${id} ${t("hasBeenPublished")}`,
-    });
+  const handleEdit = (pageKey: string) => {
+    navigate(`/admin/content/edit?pageKey=${pageKey}`);
   };
+
+  if (!user) {
+    return null;
+  }
 
   return (
     <PageLayout>
@@ -96,49 +93,42 @@ const ContentManagement = () => {
         <div className="max-w-6xl mx-auto">
           <div className="flex justify-between items-center mb-8">
             <h1 className="text-3xl font-bold text-elbilia-blue">{t("contentManagement")}</h1>
-            <button 
-              className="bg-elbilia-green text-white px-4 py-2 rounded-md hover:bg-elbilia-green/90 transition-colors"
-              onClick={() => toast({
-                title: t("featureNotAvailable"),
-                description: t("featureComingSoon"),
-              })}
-            >
-              {t("createNewContent")}
-            </button>
           </div>
 
           <div className="bg-white rounded-lg shadow overflow-hidden">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>{t("pageKey")}</TableHead>
-                  <TableHead>{t("title")}</TableHead>
+                  <TableHead>{t("page")}</TableHead>
                   <TableHead>{t("lastUpdated")}</TableHead>
                   <TableHead>{t("status")}</TableHead>
                   <TableHead className="text-right">{t("actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {sections.map((item) => (
-                  <TableRow key={item.page_key}>
-                    <TableCell className="font-medium">{item.page_key}</TableCell>
-                    <TableCell>{item.title}</TableCell>
-                    <TableCell>{item.lastUpdated}</TableCell>
-                    <TableCell>
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        {item.status}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <button
-                        onClick={() => handleEdit(item.id)}
-                        className="bg-elbilia-blue text-white px-3 py-1 rounded text-sm hover:bg-elbilia-blue/90 transition-colors"
-                      >
-                        {t("edit")}
-                      </button>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {Object.entries(PAGE_KEYS).map(([key, title]) => {
+                  const section = sections.find(s => s.page_key === key);
+                  return (
+                    <TableRow key={key}>
+                      <TableCell className="font-medium">{title}</TableCell>
+                      <TableCell>{section?.lastUpdated || t("neverUpdated")}</TableCell>
+                      <TableCell>
+                        <Badge variant={section ? "success" : "warning"}>
+                          {section ? t("published") : t("draft")}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          onClick={() => handleEdit(key)}
+                          variant="secondary"
+                          className="text-elbilia-blue hover:text-elbilia-blue/90"
+                        >
+                          {t("edit")}
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                )}
               </TableBody>
             </Table>
           </div>
