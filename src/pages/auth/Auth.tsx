@@ -7,25 +7,49 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { InfoIcon } from 'lucide-react';
+import { InfoIcon, Loader2 } from 'lucide-react';
+import { Form, FormField, FormItem, FormControl } from '@/components/ui/form';
+import { useForm } from 'react-hook-form';
+
+interface AuthFormValues {
+  email: string;
+  password: string;
+  fullName?: string;
+}
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState('');
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, isLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const form = useForm<AuthFormValues>({
+    defaultValues: {
+      email: '',
+      password: '',
+      fullName: '',
+    }
+  });
+
+  const handleSubmit = async (values: AuthFormValues) => {
     try {
       if (isLogin) {
-        await signIn(email, password);
+        await signIn(values.email, values.password);
+        toast({
+          title: "Success",
+          description: "You have successfully logged in.",
+        });
         navigate('/');
       } else {
-        await signUp(email, password, fullName);
+        if (!values.fullName) {
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Please enter your full name.",
+          });
+          return;
+        }
+        await signUp(values.email, values.password, values.fullName);
         toast({
           title: "Success",
           description: "Account created successfully. Please check your email for verification.",
@@ -34,18 +58,19 @@ export default function Auth() {
         // In a development environment, we can automatically log in after signup
         // This is just for demonstration purposes
         try {
-          await signIn(email, password);
+          await signIn(values.email, values.password);
           navigate('/');
-        } catch (innerError) {
+        } catch (innerError: any) {
           // Silent catch - user will need to verify email first
           console.log("User needs to verify email before logging in");
         }
       }
     } catch (error: any) {
+      console.error("Auth error:", error.message);
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message,
+        description: error.message || "Authentication failed. Please try again.",
       });
     }
   };
@@ -68,61 +93,64 @@ export default function Auth() {
           </AlertDescription>
         </Alert>
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="rounded-md shadow-sm space-y-4">
-            {!isLogin && (
+        <Form {...form}>
+          <form className="mt-8 space-y-6" onSubmit={form.handleSubmit(handleSubmit)}>
+            <div className="rounded-md shadow-sm space-y-4">
+              {!isLogin && (
+                <div>
+                  <Label htmlFor="full-name">Full Name</Label>
+                  <Input
+                    id="full-name"
+                    {...form.register('fullName')}
+                    type="text"
+                    placeholder="John Doe"
+                  />
+                </div>
+              )}
               <div>
-                <Label htmlFor="full-name">Full Name</Label>
+                <Label htmlFor="email-address">Email address</Label>
                 <Input
-                  id="full-name"
-                  name="fullName"
-                  type="text"
+                  id="email-address"
+                  {...form.register('email')}
+                  type="email"
+                  autoComplete="email"
                   required
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  placeholder="John Doe"
+                  placeholder="example@email.com"
                 />
               </div>
-            )}
-            <div>
-              <Label htmlFor="email-address">Email address</Label>
-              <Input
-                id="email-address"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="example@email.com"
-              />
+              <div>
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  {...form.register('password')}
+                  type="password"
+                  autoComplete="current-password"
+                  required
+                  placeholder="••••••••"
+                />
+              </div>
             </div>
-            <div>
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-              />
-            </div>
-          </div>
 
-          <div>
-            <Button type="submit" className="w-full">
-              {isLogin ? 'Sign in' : 'Sign up'}
-            </Button>
-          </div>
-        </form>
+            <div>
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {isLogin ? 'Signing in...' : 'Signing up...'}
+                  </>
+                ) : (
+                  isLogin ? 'Sign in' : 'Sign up'
+                )}
+              </Button>
+            </div>
+          </form>
+        </Form>
         <div className="text-center">
           <button
             type="button"
             onClick={() => setIsLogin(!isLogin)}
             className="text-sm text-blue-600 hover:text-blue-500"
+            disabled={isLoading}
           >
             {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
           </button>
