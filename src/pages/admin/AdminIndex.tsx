@@ -1,6 +1,6 @@
 
-import React from "react";
-import { Link, Navigate } from "react-router-dom";
+import React, { useEffect } from "react";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import PageLayout from "../../components/PageLayout";
 import { useLanguage } from "../../contexts/LanguageContext";
@@ -9,14 +9,18 @@ import { FilePlus, Users, FileText, Settings } from "lucide-react";
 const AdminIndex = () => {
   const { t } = useLanguage();
   const { user } = useAuth();
+  const navigate = useNavigate();
 
-  // Check if the user is authenticated and has admin privileges
-  // In a real application, you would check the user's role from a database or context
-  const isAdmin = user ? true : false; // For now, we'll assume any logged-in user is an admin
+  // Check if the user is authenticated when the component mounts
+  useEffect(() => {
+    if (!user) {
+      navigate('/auth');
+    }
+  }, [user, navigate]);
 
-  if (!isAdmin) {
-    // Redirect to login if not authenticated
-    return <Navigate to="/auth" replace />;
+  // If there's no user, don't render anything while the navigate effect runs
+  if (!user) {
+    return null;
   }
 
   const adminMenuItems = [

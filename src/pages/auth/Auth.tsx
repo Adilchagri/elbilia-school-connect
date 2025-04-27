@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -19,7 +19,7 @@ interface AuthFormValues {
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
-  const { signIn, signUp, isLoading, error } = useAuth();
+  const { user, signIn, signUp, isLoading, error } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -31,6 +31,13 @@ export default function Auth() {
     }
   });
 
+  // Add effect to check if user is logged in and redirect if needed
+  useEffect(() => {
+    if (user) {
+      navigate('/admin');
+    }
+  }, [user, navigate]);
+
   const handleSubmit = async (values: AuthFormValues) => {
     try {
       if (isLogin) {
@@ -39,7 +46,7 @@ export default function Auth() {
           title: "Success",
           description: "You have successfully logged in.",
         });
-        navigate('/');
+        // Navigation happens in useEffect when user state updates
       } else {
         if (!values.fullName) {
           toast({
@@ -59,7 +66,7 @@ export default function Auth() {
         // This is just for demonstration purposes
         try {
           await signIn(values.email, values.password);
-          navigate('/');
+          // Navigation happens in useEffect when user state updates
         } catch (innerError: any) {
           // Silent catch - user will need to verify email first
           console.log("User needs to verify email before logging in");
