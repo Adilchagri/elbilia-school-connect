@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Menu, X, ChevronDown, Settings } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
@@ -12,6 +12,10 @@ const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState("");
   const navigate = useNavigate();
+  
+  // Create refs for each dropdown to detect clicks outside
+  const schoolDropdownRef = useRef<HTMLDivElement>(null);
+  const programsDropdownRef = useRef<HTMLDivElement>(null);
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
@@ -24,6 +28,25 @@ const Header = () => {
       setDropdownOpen(menu);
     }
   };
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        schoolDropdownRef.current && 
+        !schoolDropdownRef.current.contains(event.target as Node) &&
+        programsDropdownRef.current && 
+        !programsDropdownRef.current.contains(event.target as Node)
+      ) {
+        setDropdownOpen("");
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const changeLanguage = (lang: "fr" | "ar" | "en") => {
     setLanguage(lang);
@@ -38,7 +61,7 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-white shadow-md">
+    <header className="bg-white shadow-md relative">
       <div className="container-custom py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
@@ -55,7 +78,7 @@ const Header = () => {
               {t("home")}
             </Link>
             
-            <div className="relative">
+            <div className="relative" ref={schoolDropdownRef}>
               <button
                 className="flex items-center font-medium hover:text-elbilia-blue transition-colors"
                 onClick={() => toggleDropdown("school")}
@@ -63,7 +86,7 @@ const Header = () => {
                 {t("ourSchool")} <ChevronDown className="ml-1 h-4 w-4" />
               </button>
               {dropdownOpen === "school" && (
-                <div className="absolute mt-2 w-48 bg-white shadow-lg rounded-md py-2 z-10">
+                <div className="absolute mt-2 w-48 bg-white shadow-lg rounded-md py-2 z-50">
                   <Link to="/director" className="block px-4 py-2 hover:bg-elbilia-light">
                     {t("directorWord")}
                   </Link>
@@ -80,7 +103,7 @@ const Header = () => {
               )}
             </div>
             
-            <div className="relative">
+            <div className="relative" ref={programsDropdownRef}>
               <button
                 className="flex items-center font-medium hover:text-elbilia-blue transition-colors"
                 onClick={() => toggleDropdown("programs")}
@@ -88,7 +111,7 @@ const Header = () => {
                 {t("educationalPrograms")} <ChevronDown className="ml-1 h-4 w-4" />
               </button>
               {dropdownOpen === "programs" && (
-                <div className="absolute mt-2 w-48 bg-white shadow-lg rounded-md py-2 z-10">
+                <div className="absolute mt-2 w-48 bg-white shadow-lg rounded-md py-2 z-50">
                   <Link to="/preschool" className="block px-4 py-2 hover:bg-elbilia-light">
                     {t("preschool")}
                   </Link>
@@ -177,7 +200,7 @@ const Header = () => {
 
       {/* Mobile Navigation */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-white border-t py-4">
+        <div className="lg:hidden bg-white border-t py-4 absolute w-full z-50 shadow-lg">
           <div className="container-custom">
             <nav className="flex flex-col space-y-4">
               <Link 

@@ -98,9 +98,9 @@ const ContentEditor = () => {
     setSaving(false);
   };
 
-  const isAdmin = user ? true : false;
-  if (!isAdmin) {
-    return navigate("/auth");
+  if (!user) {
+    navigate("/auth");
+    return null;
   }
 
   return (
