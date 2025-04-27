@@ -19,7 +19,7 @@ interface AuthFormValues {
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
-  const { signIn, signUp, isLoading } = useAuth();
+  const { signIn, signUp, isLoading, error } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -92,6 +92,13 @@ export default function Auth() {
             Password: password123
           </AlertDescription>
         </Alert>
+
+        {error && (
+          <Alert variant="destructive">
+            <AlertTitle>Authentication Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
 
         <Form {...form}>
           <form className="mt-8 space-y-6" onSubmit={form.handleSubmit(handleSubmit)}>
