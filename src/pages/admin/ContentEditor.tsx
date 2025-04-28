@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useForm } from "react-hook-form";
 import PageLayout from "../../components/PageLayout";
 import { useLanguage } from "../../contexts/LanguageContext";
 import { useAuth } from "../../contexts/AuthContext";
@@ -33,6 +34,11 @@ const ContentEditor = () => {
   const [jsonContent, setJsonContent] = useState("");
   const [title, setTitle] = useState("");
   const [error, setError] = useState<string | null>(null);
+  
+  // Initialize form
+  const form = useForm({
+    defaultValues: formData
+  });
 
   useEffect(() => {
     if (!user) {
@@ -57,6 +63,7 @@ const ContentEditor = () => {
         setTitle(data.title);
         setJsonContent(JSON.stringify(data.content, null, 2));
         setFormData(data.content || {});
+        form.reset(data.content || {}); // Reset form with content
       }
     } catch (error: any) {
       setError(error.message);
@@ -165,36 +172,33 @@ const ContentEditor = () => {
     if (pageKey === 'home') {
       return (
         <div className="space-y-6">
-          <FormItem>
-            <FormLabel>Titre Principal</FormLabel>
-            <FormControl>
-              <Input 
-                value={formData.heroTitle || ''} 
-                onChange={(e) => handleFormChange('heroTitle', e.target.value)} 
-              />
-            </FormControl>
-          </FormItem>
+          <div className="space-y-2">
+            <Label htmlFor="heroTitle">Titre Principal</Label>
+            <Input 
+              id="heroTitle"
+              value={formData.heroTitle || ''} 
+              onChange={(e) => handleFormChange('heroTitle', e.target.value)} 
+            />
+          </div>
           
-          <FormItem>
-            <FormLabel>Sous-titre</FormLabel>
-            <FormControl>
-              <Input 
-                value={formData.heroSubtitle || ''} 
-                onChange={(e) => handleFormChange('heroSubtitle', e.target.value)} 
-              />
-            </FormControl>
-          </FormItem>
+          <div className="space-y-2">
+            <Label htmlFor="heroSubtitle">Sous-titre</Label>
+            <Input 
+              id="heroSubtitle"
+              value={formData.heroSubtitle || ''} 
+              onChange={(e) => handleFormChange('heroSubtitle', e.target.value)} 
+            />
+          </div>
           
-          <FormItem>
-            <FormLabel>Description</FormLabel>
-            <FormControl>
-              <Textarea 
-                value={formData.description || ''} 
-                onChange={(e) => handleFormChange('description', e.target.value)}
-                rows={4}
-              />
-            </FormControl>
-          </FormItem>
+          <div className="space-y-2">
+            <Label htmlFor="description">Description</Label>
+            <Textarea 
+              id="description"
+              value={formData.description || ''} 
+              onChange={(e) => handleFormChange('description', e.target.value)}
+              rows={4}
+            />
+          </div>
         </div>
       );
     }
@@ -225,54 +229,50 @@ const ContentEditor = () => {
               </Button>
               
               <div className="space-y-4">
-                <FormItem>
-                  <FormLabel>Titre</FormLabel>
-                  <FormControl>
-                    <Input 
-                      value={item.title || ''} 
-                      onChange={(e) => handleUpdateNewsItem(index, 'title', e.target.value)} 
-                    />
-                  </FormControl>
-                </FormItem>
+                <div className="space-y-2">
+                  <Label htmlFor={`title-${index}`}>Titre</Label>
+                  <Input 
+                    id={`title-${index}`}
+                    value={item.title || ''} 
+                    onChange={(e) => handleUpdateNewsItem(index, 'title', e.target.value)} 
+                  />
+                </div>
                 
-                <FormItem>
-                  <FormLabel>Extrait</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      value={item.excerpt || ''} 
-                      onChange={(e) => handleUpdateNewsItem(index, 'excerpt', e.target.value)}
-                      rows={3}
-                    />
-                  </FormControl>
-                </FormItem>
+                <div className="space-y-2">
+                  <Label htmlFor={`excerpt-${index}`}>Extrait</Label>
+                  <Textarea 
+                    id={`excerpt-${index}`}
+                    value={item.excerpt || ''} 
+                    onChange={(e) => handleUpdateNewsItem(index, 'excerpt', e.target.value)}
+                    rows={3}
+                  />
+                </div>
                 
                 <div className="grid grid-cols-2 gap-4">
-                  <FormItem>
-                    <FormLabel>Date</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="date"
-                        value={item.date || ''} 
-                        onChange={(e) => handleUpdateNewsItem(index, 'date', e.target.value)} 
-                      />
-                    </FormControl>
-                  </FormItem>
+                  <div className="space-y-2">
+                    <Label htmlFor={`date-${index}`}>Date</Label>
+                    <Input 
+                      id={`date-${index}`}
+                      type="date"
+                      value={item.date || ''} 
+                      onChange={(e) => handleUpdateNewsItem(index, 'date', e.target.value)} 
+                    />
+                  </div>
                   
-                  <FormItem>
-                    <FormLabel>Image URL</FormLabel>
-                    <FormControl>
-                      <div className="flex gap-2">
-                        <Input 
-                          value={item.image || ''} 
-                          onChange={(e) => handleUpdateNewsItem(index, 'image', e.target.value)} 
-                          placeholder="https://example.com/image.jpg"
-                        />
-                        <Button variant="outline" size="icon" title="Visualiser">
-                          <Image size={16} />
-                        </Button>
-                      </div>
-                    </FormControl>
-                  </FormItem>
+                  <div className="space-y-2">
+                    <Label htmlFor={`image-${index}`}>Image URL</Label>
+                    <div className="flex gap-2">
+                      <Input 
+                        id={`image-${index}`}
+                        value={item.image || ''} 
+                        onChange={(e) => handleUpdateNewsItem(index, 'image', e.target.value)} 
+                        placeholder="https://example.com/image.jpg"
+                      />
+                      <Button variant="outline" size="icon" title="Visualiser">
+                        <Image size={16} />
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </Card>
@@ -290,59 +290,54 @@ const ContentEditor = () => {
     if (pageKey === 'preschool') {
       return (
         <div className="space-y-6">
-          <FormItem>
-            <FormLabel>Titre de la page</FormLabel>
-            <FormControl>
-              <Input 
-                value={formData.pageTitle || ''} 
-                onChange={(e) => handleFormChange('pageTitle', e.target.value)} 
-              />
-            </FormControl>
-          </FormItem>
+          <div className="space-y-2">
+            <Label htmlFor="pageTitle">Titre de la page</Label>
+            <Input 
+              id="pageTitle"
+              value={formData.pageTitle || ''} 
+              onChange={(e) => handleFormChange('pageTitle', e.target.value)} 
+            />
+          </div>
           
-          <FormItem>
-            <FormLabel>Description</FormLabel>
-            <FormControl>
-              <Textarea 
-                value={formData.description || ''} 
-                onChange={(e) => handleFormChange('description', e.target.value)}
-                rows={4}
-              />
-            </FormControl>
-          </FormItem>
+          <div className="space-y-2">
+            <Label htmlFor="description">Description</Label>
+            <Textarea 
+              id="description"
+              value={formData.description || ''} 
+              onChange={(e) => handleFormChange('description', e.target.value)}
+              rows={4}
+            />
+          </div>
           
-          <FormItem>
-            <FormLabel>Approche pédagogique</FormLabel>
-            <FormControl>
-              <Textarea 
-                value={formData.approach || ''} 
-                onChange={(e) => handleFormChange('approach', e.target.value)}
-                rows={6}
-              />
-            </FormControl>
-          </FormItem>
+          <div className="space-y-2">
+            <Label htmlFor="approach">Approche pédagogique</Label>
+            <Textarea 
+              id="approach"
+              value={formData.approach || ''} 
+              onChange={(e) => handleFormChange('approach', e.target.value)}
+              rows={6}
+            />
+          </div>
           
-          <FormItem>
-            <FormLabel>Tranche d'âge</FormLabel>
-            <FormControl>
-              <Input 
-                value={formData.ageRange || ''} 
-                onChange={(e) => handleFormChange('ageRange', e.target.value)} 
-                placeholder="Ex: 3-5 ans"
-              />
-            </FormControl>
-          </FormItem>
+          <div className="space-y-2">
+            <Label htmlFor="ageRange">Tranche d'âge</Label>
+            <Input 
+              id="ageRange"
+              value={formData.ageRange || ''} 
+              onChange={(e) => handleFormChange('ageRange', e.target.value)} 
+              placeholder="Ex: 3-5 ans"
+            />
+          </div>
           
-          <FormItem>
-            <FormLabel>Taille des classes</FormLabel>
-            <FormControl>
-              <Input 
-                value={formData.classSize || ''} 
-                onChange={(e) => handleFormChange('classSize', e.target.value)} 
-                placeholder="Ex: 15-20 élèves"
-              />
-            </FormControl>
-          </FormItem>
+          <div className="space-y-2">
+            <Label htmlFor="classSize">Taille des classes</Label>
+            <Input 
+              id="classSize"
+              value={formData.classSize || ''} 
+              onChange={(e) => handleFormChange('classSize', e.target.value)} 
+              placeholder="Ex: 15-20 élèves"
+            />
+          </div>
         </div>
       );
     }
@@ -350,59 +345,54 @@ const ContentEditor = () => {
     if (pageKey === 'primary') {
       return (
         <div className="space-y-6">
-          <FormItem>
-            <FormLabel>Titre de la page</FormLabel>
-            <FormControl>
-              <Input 
-                value={formData.pageTitle || ''} 
-                onChange={(e) => handleFormChange('pageTitle', e.target.value)} 
-              />
-            </FormControl>
-          </FormItem>
+          <div className="space-y-2">
+            <Label htmlFor="pageTitle">Titre de la page</Label>
+            <Input 
+              id="pageTitle"
+              value={formData.pageTitle || ''} 
+              onChange={(e) => handleFormChange('pageTitle', e.target.value)} 
+            />
+          </div>
           
-          <FormItem>
-            <FormLabel>Description</FormLabel>
-            <FormControl>
-              <Textarea 
-                value={formData.description || ''} 
-                onChange={(e) => handleFormChange('description', e.target.value)}
-                rows={4}
-              />
-            </FormControl>
-          </FormItem>
+          <div className="space-y-2">
+            <Label htmlFor="description">Description</Label>
+            <Textarea 
+              id="description"
+              value={formData.description || ''} 
+              onChange={(e) => handleFormChange('description', e.target.value)}
+              rows={4}
+            />
+          </div>
           
-          <FormItem>
-            <FormLabel>Approche pédagogique</FormLabel>
-            <FormControl>
-              <Textarea 
-                value={formData.approach || ''} 
-                onChange={(e) => handleFormChange('approach', e.target.value)}
-                rows={6}
-              />
-            </FormControl>
-          </FormItem>
+          <div className="space-y-2">
+            <Label htmlFor="approach">Approche pédagogique</Label>
+            <Textarea 
+              id="approach"
+              value={formData.approach || ''} 
+              onChange={(e) => handleFormChange('approach', e.target.value)}
+              rows={6}
+            />
+          </div>
           
-          <FormItem>
-            <FormLabel>Tranche d'âge</FormLabel>
-            <FormControl>
-              <Input 
-                value={formData.ageRange || ''} 
-                onChange={(e) => handleFormChange('ageRange', e.target.value)} 
-                placeholder="Ex: 6-11 ans"
-              />
-            </FormControl>
-          </FormItem>
+          <div className="space-y-2">
+            <Label htmlFor="ageRange">Tranche d'âge</Label>
+            <Input 
+              id="ageRange"
+              value={formData.ageRange || ''} 
+              onChange={(e) => handleFormChange('ageRange', e.target.value)} 
+              placeholder="Ex: 6-11 ans"
+            />
+          </div>
           
-          <FormItem>
-            <FormLabel>Taille des classes</FormLabel>
-            <FormControl>
-              <Input 
-                value={formData.classSize || ''} 
-                onChange={(e) => handleFormChange('classSize', e.target.value)} 
-                placeholder="Ex: 20-25 élèves"
-              />
-            </FormControl>
-          </FormItem>
+          <div className="space-y-2">
+            <Label htmlFor="classSize">Taille des classes</Label>
+            <Input 
+              id="classSize"
+              value={formData.classSize || ''} 
+              onChange={(e) => handleFormChange('classSize', e.target.value)} 
+              placeholder="Ex: 20-25 élèves"
+            />
+          </div>
         </div>
       );
     }
@@ -410,26 +400,24 @@ const ContentEditor = () => {
     // Default form for other pages
     return (
       <div className="space-y-6">
-        <FormItem>
-          <FormLabel>Titre</FormLabel>
-          <FormControl>
-            <Input 
-              value={formData.title || ''} 
-              onChange={(e) => handleFormChange('title', e.target.value)} 
-            />
-          </FormControl>
-        </FormItem>
+        <div className="space-y-2">
+          <Label htmlFor="title">Titre</Label>
+          <Input 
+            id="title"
+            value={formData.title || ''} 
+            onChange={(e) => handleFormChange('title', e.target.value)} 
+          />
+        </div>
         
-        <FormItem>
-          <FormLabel>Description</FormLabel>
-          <FormControl>
-            <Textarea 
-              value={formData.description || ''} 
-              onChange={(e) => handleFormChange('description', e.target.value)}
-              rows={6}
-            />
-          </FormControl>
-        </FormItem>
+        <div className="space-y-2">
+          <Label htmlFor="description">Description</Label>
+          <Textarea 
+            id="description"
+            value={formData.description || ''} 
+            onChange={(e) => handleFormChange('description', e.target.value)}
+            rows={6}
+          />
+        </div>
       </div>
     );
   };
@@ -494,9 +482,11 @@ const ContentEditor = () => {
                     </TabsList>
                     
                     <TabsContent value="visual" className="pt-6">
-                      <div className="space-y-6">
-                        {renderFormFields()}
-                      </div>
+                      <Form {...form}>
+                        <div className="space-y-6">
+                          {renderFormFields()}
+                        </div>
+                      </Form>
                     </TabsContent>
                     
                     <TabsContent value="json" className="pt-6">
