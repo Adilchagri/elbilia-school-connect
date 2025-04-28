@@ -15,7 +15,7 @@ import { useToast } from "../../hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Edit, Search, FileText, Filter, ArrowUpDown, Plus, Trash } from "lucide-react";
+import { Edit, Search, FileText, ArrowUpDown, Plus, Trash } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   Card,
