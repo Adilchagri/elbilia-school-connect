@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,7 +21,11 @@ export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
   const { user, signIn, signUp, isLoading, error } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
+
+  // Get the return URL from state, or default to /admin
+  const returnUrl = location.state?.from || '/admin';
 
   const form = useForm<AuthFormValues>({
     defaultValues: {
@@ -34,9 +38,10 @@ export default function Auth() {
   // Add effect to check if user is logged in and redirect if needed
   useEffect(() => {
     if (user) {
-      navigate('/admin');
+      console.log("User authenticated, redirecting to:", returnUrl);
+      navigate(returnUrl, { replace: true });
     }
-  }, [user, navigate]);
+  }, [user, navigate, returnUrl]);
 
   const handleSubmit = async (values: AuthFormValues) => {
     try {

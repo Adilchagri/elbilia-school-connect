@@ -1,10 +1,8 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useForm, FormProvider } from "react-hook-form";
-import PageLayout from "../../components/PageLayout";
+import AdminLayout from "../../components/admin/AdminLayout";
 import { useLanguage } from "../../contexts/LanguageContext";
-import { useAuth } from "../../contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -21,7 +19,6 @@ import {
   FormControl,
   FormMessage,
 } from "@/components/ui/form";
-import { supabase } from "@/integrations/supabase/client";
 import { getPageContent, updatePageContent, PageContent } from "@/lib/content";
 import {
   Image,
@@ -31,6 +28,7 @@ import {
   ChevronLeft,
   AlertCircle,
   CheckCircle2,
+  ImagePlus
 } from "lucide-react";
 import {
   Breadcrumb,
@@ -42,7 +40,6 @@ import {
 
 const ContentEditor = () => {
   const { t } = useLanguage();
-  const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -64,17 +61,12 @@ const ContentEditor = () => {
   });
 
   useEffect(() => {
-    if (!user) {
-      navigate("/auth");
-      return;
-    }
-
     if (pageKey) {
       fetchContent(pageKey);
     } else {
       setLoading(false);
     }
-  }, [pageKey, user, navigate]);
+  }, [pageKey]);
 
   const fetchContent = async (key: string) => {
     setLoading(true);
@@ -200,6 +192,26 @@ const ContentEditor = () => {
     });
   };
 
+  const handleImageUpload = (fieldName: string) => {
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*';
+    fileInput.onchange = (event: any) => {
+      const file = event.target.files[0];
+      if (file) {
+        // Here we'd normally upload the file to a server or convert to base64
+        // For now, we'll just use a fake URL as placeholder
+        const imageUrl = URL.createObjectURL(file);
+        handleFormChange(fieldName, imageUrl);
+        toast({
+          title: "Information",
+          description: "Pour une utilisation en production, téléchargez cette image sur un service d'hébergement et utilisez l'URL obtenue.",
+        });
+      }
+    };
+    fileInput.click();
+  };
+
   const getPageTitle = () => {
     if (!pageKey) return "Éditeur de contenu";
     return PAGE_KEYS[pageKey as keyof typeof PAGE_KEYS] || title;
@@ -253,22 +265,31 @@ const ContentEditor = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="heroImageUrl">Image d'en-tête (URL)</Label>
-            <Input
-              id="heroImageUrl"
-              value={formData.heroImageUrl || ""}
-              onChange={(e) => handleFormChange("heroImageUrl", e.target.value)}
-              placeholder="https://example.com/image.jpg"
-            />
-            {formData.heroImageUrl && (
-              <div className="mt-2 border rounded-md p-2">
-                <img
-                  src={formData.heroImageUrl}
-                  alt="Aperçu"
-                  className="max-h-40 object-cover rounded"
+            <Label className="block mb-2">Image d'en-tête</Label>
+            <div className="flex flex-col gap-3">
+              <div className="flex gap-2">
+                <Input
+                  id="heroImageUrl"
+                  value={formData.heroImageUrl || ""}
+                  onChange={(e) => handleFormChange("heroImageUrl", e.target.value)}
+                  placeholder="https://example.com/image.jpg"
+                  className="flex-1"
                 />
+                <Button type="button" variant="outline" onClick={() => handleImageUpload("heroImageUrl")}>
+                  <ImagePlus className="h-4 w-4 mr-1" />
+                  Parcourir
+                </Button>
               </div>
-            )}
+              {formData.heroImageUrl && (
+                <div className="mt-2 border rounded-md p-2">
+                  <img
+                    src={formData.heroImageUrl}
+                    alt="Aperçu"
+                    className="max-h-40 object-cover rounded"
+                  />
+                </div>
+              )}
+            </div>
           </div>
         </div>
       );
@@ -345,7 +366,7 @@ const ContentEditor = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor={`image-${index}`}>Image URL</Label>
+                    <Label htmlFor={`image-${index}`}>Image</Label>
                     <div className="flex gap-2">
                       <Input
                         id={`image-${index}`}
@@ -354,7 +375,31 @@ const ContentEditor = () => {
                           handleUpdateNewsItem(index, "image", e.target.value)
                         }
                         placeholder="https://example.com/image.jpg"
+                        className="flex-1"
                       />
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        onClick={() => {
+                          const fileInput = document.createElement('input');
+                          fileInput.type = 'file';
+                          fileInput.accept = 'image/*';
+                          fileInput.onchange = (event: any) => {
+                            const file = event.target.files[0];
+                            if (file) {
+                              const imageUrl = URL.createObjectURL(file);
+                              handleUpdateNewsItem(index, "image", imageUrl);
+                              toast({
+                                title: "Information",
+                                description: "Pour une utilisation en production, téléchargez cette image sur un service d'hébergement.",
+                              });
+                            }
+                          };
+                          fileInput.click();
+                        }}
+                      >
+                        <ImagePlus className="h-4 w-4" />
+                      </Button>
                     </div>
                     {item.image && (
                       <div className="mt-2 border rounded-md p-2">
@@ -433,13 +478,20 @@ const ContentEditor = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="programImage">Image principale (URL)</Label>
-            <Input
-              id="programImage"
-              value={formData.programImage || ""}
-              onChange={(e) => handleFormChange("programImage", e.target.value)}
-              placeholder="https://example.com/image.jpg"
-            />
+            <Label className="block mb-2">Image principale</Label>
+            <div className="flex gap-2">
+              <Input
+                id="programImage"
+                value={formData.programImage || ""}
+                onChange={(e) => handleFormChange("programImage", e.target.value)}
+                placeholder="https://example.com/image.jpg"
+                className="flex-1"
+              />
+              <Button type="button" variant="outline" onClick={() => handleImageUpload("programImage")}>
+                <ImagePlus className="h-4 w-4 mr-1" />
+                Parcourir
+              </Button>
+            </div>
             {formData.programImage && (
               <div className="mt-2 border rounded-md p-2">
                 <img
@@ -477,13 +529,20 @@ const ContentEditor = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="directorImage">Photo du Directeur (URL)</Label>
-            <Input
-              id="directorImage"
-              value={formData.directorImage || ""}
-              onChange={(e) => handleFormChange("directorImage", e.target.value)}
-              placeholder="https://example.com/image.jpg"
-            />
+            <Label className="block mb-2">Photo du Directeur</Label>
+            <div className="flex gap-2">
+              <Input
+                id="directorImage"
+                value={formData.directorImage || ""}
+                onChange={(e) => handleFormChange("directorImage", e.target.value)}
+                placeholder="https://example.com/image.jpg"
+                className="flex-1"
+              />
+              <Button type="button" variant="outline" onClick={() => handleImageUpload("directorImage")}>
+                <ImagePlus className="h-4 w-4 mr-1" />
+                Parcourir
+              </Button>
+            </div>
             {formData.directorImage && (
               <div className="mt-2 border rounded-md p-2">
                 <img
@@ -874,13 +933,9 @@ const ContentEditor = () => {
     );
   };
 
-  if (!user) {
-    return null;
-  }
-
   return (
-    <PageLayout>
-      <div className="container-custom py-10">
+    <AdminLayout>
+      <div className="container-custom py-6">
         <div className="max-w-4xl mx-auto">
           <Breadcrumb className="mb-6">
             <BreadcrumbList>
@@ -901,7 +956,7 @@ const ContentEditor = () => {
           </Breadcrumb>
 
           <div className="flex justify-between items-center mb-8">
-            <h1 className="text-2xl sm:text-3xl font-bold text-elbilia-blue">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
               {t("editContent")}: {getPageTitle()}
             </h1>
             <div className="space-x-2 sm:space-x-4 flex">
@@ -942,10 +997,10 @@ const ContentEditor = () => {
 
           {loading ? (
             <div className="flex justify-center items-center h-64">
-              <p>{t("loading")}...</p>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-elbilia-blue"></div>
             </div>
           ) : (
-            <Card>
+            <Card className="shadow-sm">
               <CardContent className="pt-6">
                 <Tabs defaultValue="visual" value={activeTab} onValueChange={setActiveTab}>
                   <TabsList className="mb-6">
@@ -987,7 +1042,7 @@ const ContentEditor = () => {
           )}
         </div>
       </div>
-    </PageLayout>
+    </AdminLayout>
   );
 };
 
