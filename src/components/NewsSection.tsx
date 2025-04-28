@@ -1,13 +1,47 @@
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useLanguage } from "../contexts/LanguageContext";
+import { getPageContent } from "@/lib/content";
 
 const NewsSection = () => {
   const { t, language } = useLanguage();
+  const [newsItems, setNewsItems] = useState([]);
+  const [loading, setLoading] = useState(true);
   
-  // Example news data
-  const newsItems = [
+  useEffect(() => {
+    const fetchNews = async () => {
+      try {
+        const data = await getPageContent('news');
+        if (data?.content?.newsItems) {
+          setNewsItems(data.content.newsItems);
+        }
+      } catch (error) {
+        console.error("Error fetching news:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchNews();
+  }, []);
+
+  // Format date based on language
+  const formatDate = (dateString: string) => {
+    if (!dateString) return "";
+    
+    const date = new Date(dateString);
+    if (language === "fr") {
+      return new Intl.DateTimeFormat('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' }).format(date);
+    } else if (language === "ar") {
+      return new Intl.DateTimeFormat('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' }).format(date);
+    } else {
+      return new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'long', day: 'numeric' }).format(date);
+    }
+  };
+
+  // If no news items are available, use these default items
+  const defaultNewsItems = [
     {
       id: 1,
       title: language === "fr" 
@@ -55,17 +89,7 @@ const NewsSection = () => {
     }
   ];
 
-  // Format date based on language
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    if (language === "fr") {
-      return new Intl.DateTimeFormat('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' }).format(date);
-    } else if (language === "ar") {
-      return new Intl.DateTimeFormat('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' }).format(date);
-    } else {
-      return new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'long', day: 'numeric' }).format(date);
-    }
-  };
+  const displayItems = newsItems.length > 0 ? newsItems : defaultNewsItems;
 
   return (
     <section className="py-16 bg-white">
@@ -75,39 +99,47 @@ const NewsSection = () => {
           <span className="block w-16 h-1 bg-elbilia-yellow mt-2"></span>
         </h2>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {newsItems.map((item) => (
-            <div key={item.id} className="bg-white rounded-lg shadow-md overflow-hidden">
-              <div className="aspect-w-16 aspect-h-9">
-                <img 
-                  src={item.image} 
-                  alt={item.title}
-                  className="object-cover w-full h-48"
-                />
-              </div>
-              <div className="p-6">
-                <p className="text-sm text-gray-500 mb-2">{formatDate(item.date)}</p>
-                <h3 className="text-xl font-bold mb-2">{item.title}</h3>
-                <p className="text-gray-600 mb-4">{item.excerpt}</p>
-                <Link 
-                  to="/news" 
-                  className="text-elbilia-blue hover:text-elbilia-green font-medium"
-                >
-                  {t("readMore")} →
-                </Link>
-              </div>
+        {loading ? (
+          <div className="flex justify-center items-center h-64">
+            <p>{t("loading")}...</p>
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {displayItems.map((item: any) => (
+                <div key={item.id} className="bg-white rounded-lg shadow-md overflow-hidden">
+                  <div className="aspect-w-16 aspect-h-9">
+                    <img 
+                      src={item.image} 
+                      alt={item.title}
+                      className="object-cover w-full h-48"
+                    />
+                  </div>
+                  <div className="p-6">
+                    <p className="text-sm text-gray-500 mb-2">{formatDate(item.date)}</p>
+                    <h3 className="text-xl font-bold mb-2">{item.title}</h3>
+                    <p className="text-gray-600 mb-4">{item.excerpt}</p>
+                    <Link 
+                      to="/news" 
+                      className="text-elbilia-blue hover:text-elbilia-green font-medium"
+                    >
+                      {t("readMore")} →
+                    </Link>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-        
-        <div className="mt-12 text-center">
-          <Link 
-            to="/news" 
-            className="btn-outline"
-          >
-            {language === "fr" ? "Voir toutes les actualités" : language === "ar" ? "عرض جميع الأخبار" : "View all news"}
-          </Link>
-        </div>
+            
+            <div className="mt-12 text-center">
+              <Link 
+                to="/news" 
+                className="btn-outline"
+              >
+                {language === "fr" ? "Voir toutes les actualités" : language === "ar" ? "عرض جميع الأخبار" : "View all news"}
+              </Link>
+            </div>
+          </>
+        )}
       </div>
     </section>
   );

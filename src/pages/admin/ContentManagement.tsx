@@ -29,6 +29,8 @@ const PAGE_KEYS = {
   'home': 'Accueil',
   'school': 'Notre École',
   'programs': 'Programmes Éducatifs',
+  'preschool': 'Maternelle',
+  'primary': 'Primaire',
   'news': 'Actualités',
   'admissions': 'Admissions',
   'contact': 'Contact'
@@ -113,7 +115,7 @@ const ContentManagement = () => {
                       <TableCell className="font-medium">{title}</TableCell>
                       <TableCell>{section?.lastUpdated || t("neverUpdated")}</TableCell>
                       <TableCell>
-                        <Badge variant={section ? "success" : "warning"}>
+                        <Badge variant={section ? "default" : "outline"}>
                           {section ? t("published") : t("draft")}
                         </Badge>
                       </TableCell>

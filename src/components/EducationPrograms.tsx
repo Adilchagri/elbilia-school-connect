@@ -18,18 +18,6 @@ const EducationPrograms = () => {
       title: t("primary"),
       image: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
       link: "/primary"
-    },
-    {
-      id: "middle",
-      title: t("middle"),
-      image: "https://images.unsplash.com/photo-1509062522246-3755977927d7?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
-      link: "/middle"
-    },
-    {
-      id: "highSchool",
-      title: t("highSchool"),
-      image: "https://images.unsplash.com/photo-1509062522246-3755977927d7?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
-      link: "/high"
     }
   ];
 
@@ -41,7 +29,7 @@ const EducationPrograms = () => {
           <span className="block mx-auto w-16 h-1 bg-elbilia-yellow mt-2"></span>
         </h2>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {programs.map((program) => (
             <div key={program.id} className="group overflow-hidden rounded-lg shadow-md relative">
               <div className="aspect-w-3 aspect-h-4">
