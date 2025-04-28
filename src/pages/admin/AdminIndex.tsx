@@ -4,7 +4,17 @@ import { Link, Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import PageLayout from "../../components/PageLayout";
 import { useLanguage } from "../../contexts/LanguageContext";
-import { FilePlus, Users, FileText, Settings } from "lucide-react";
+import { 
+  FilePlus, 
+  Users, 
+  FileText, 
+  Settings, 
+  LayoutDashboard,
+  Edit,
+  Newspaper,
+  Book
+} from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 const AdminIndex = () => {
   const { t } = useLanguage();
@@ -27,26 +37,30 @@ const AdminIndex = () => {
     {
       title: t("contentManagement"),
       description: t("contentManagementDescription"),
-      icon: <FileText className="h-8 w-8" />,
-      link: "/admin/content"
+      icon: <FileText className="h-8 w-8 text-elbilia-blue" />,
+      link: "/admin/content",
+      color: "bg-blue-50"
     },
     {
       title: t("admissionsManagement"),
       description: t("admissionsManagementDescription"),
-      icon: <FilePlus className="h-8 w-8" />,
-      link: "/admin/admissions"
+      icon: <FilePlus className="h-8 w-8 text-elbilia-green" />,
+      link: "/admin/admissions",
+      color: "bg-green-50"
     },
     {
       title: t("userManagement"),
       description: t("userManagementDescription"),
-      icon: <Users className="h-8 w-8" />,
-      link: "/admin/users"
+      icon: <Users className="h-8 w-8 text-amber-600" />,
+      link: "/admin/users",
+      color: "bg-amber-50"
     },
     {
       title: t("siteSettings"),
       description: t("siteSettingsDescription"),
-      icon: <Settings className="h-8 w-8" />,
-      link: "/admin/settings"
+      icon: <Settings className="h-8 w-8 text-gray-600" />,
+      link: "/admin/settings",
+      color: "bg-gray-50"
     },
   ];
 
@@ -54,27 +68,68 @@ const AdminIndex = () => {
     <PageLayout>
       <div className="container-custom py-10">
         <div className="max-w-6xl mx-auto">
-          <h1 className="text-3xl font-bold text-elbilia-blue mb-6">{t("adminDashboard")}</h1>
-          <p className="text-lg text-gray-600 mb-8">
-            {t("welcomeAdmin")} {user?.email}
-          </p>
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-elbilia-blue mb-2">{t("adminDashboard")}</h1>
+            <p className="text-lg text-gray-600">
+              {t("welcomeAdmin")} {user?.email}
+            </p>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {adminMenuItems.map((item, index) => (
-              <Link 
-                key={index}
-                to={item.link}
-                className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow flex gap-4"
-              >
-                <div className="text-elbilia-blue">
-                  {item.icon}
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold text-elbilia-blue">{item.title}</h2>
-                  <p className="text-gray-600 mt-2">{item.description}</p>
-                </div>
-              </Link>
+              <Card key={index} className="border-none shadow-md hover:shadow-lg transition-all">
+                <Link to={item.link} className="block h-full">
+                  <CardHeader className={`${item.color} rounded-t-lg p-6`}>
+                    <div className="flex items-center gap-4">
+                      <div>
+                        {item.icon}
+                      </div>
+                      <div>
+                        <CardTitle className="text-xl">{item.title}</CardTitle>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pt-4">
+                    <CardDescription className="text-base">{item.description}</CardDescription>
+                  </CardContent>
+                </Link>
+              </Card>
             ))}
+          </div>
+
+          <div className="mt-12">
+            <h2 className="text-2xl font-bold text-elbilia-blue mb-6">{t("quickAccess")}</h2>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <Link 
+                to="/admin/content/edit?pageKey=home"
+                className="flex items-center p-4 bg-white rounded-lg shadow hover:shadow-md transition-all"
+              >
+                <LayoutDashboard className="h-6 w-6 text-elbilia-blue mr-3" />
+                <span>Modifier Accueil</span>
+              </Link>
+              <Link 
+                to="/admin/content/edit?pageKey=news"
+                className="flex items-center p-4 bg-white rounded-lg shadow hover:shadow-md transition-all"
+              >
+                <Newspaper className="h-6 w-6 text-elbilia-blue mr-3" />
+                <span>Gérer Actualités</span>
+              </Link>
+              <Link 
+                to="/admin/content/edit?pageKey=preschool"
+                className="flex items-center p-4 bg-white rounded-lg shadow hover:shadow-md transition-all"
+              >
+                <Book className="h-6 w-6 text-elbilia-green mr-3" />
+                <span>Modifier Maternelle</span>
+              </Link>
+              <Link 
+                to="/admin/content/edit?pageKey=primary"
+                className="flex items-center p-4 bg-white rounded-lg shadow hover:shadow-md transition-all"
+              >
+                <Book className="h-6 w-6 text-elbilia-green mr-3" />
+                <span>Modifier Primaire</span>
+              </Link>
+            </div>
           </div>
         </div>
       </div>

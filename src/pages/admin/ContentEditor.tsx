@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useForm } from "react-hook-form";
+import { useForm, FormProvider } from "react-hook-form";
 import PageLayout from "../../components/PageLayout";
 import { useLanguage } from "../../contexts/LanguageContext";
 import { useAuth } from "../../contexts/AuthContext";
@@ -10,13 +10,35 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "../../hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form";
 import { supabase } from "@/integrations/supabase/client";
 import { getPageContent, updatePageContent, PageContent } from "@/lib/content";
-import { Image, Plus, Trash } from "lucide-react";
+import {
+  Image,
+  Plus,
+  Trash,
+  Save,
+  ChevronLeft,
+  AlertCircle,
+  CheckCircle2,
+} from "lucide-react";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 
 const ContentEditor = () => {
   const { t } = useLanguage();
@@ -24,25 +46,26 @@ const ContentEditor = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const pageKey = searchParams.get('pageKey');
-  
+  const pageKey = searchParams.get("pageKey");
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [content, setContent] = useState<PageContent | null>(null);
-  const [formData, setFormData] = useState<{[key: string]: any}>({});
+  const [formData, setFormData] = useState<{ [key: string]: any }>({});
   const [activeTab, setActiveTab] = useState("visual");
   const [jsonContent, setJsonContent] = useState("");
   const [title, setTitle] = useState("");
   const [error, setError] = useState<string | null>(null);
-  
+  const [saveSuccess, setSaveSuccess] = useState(false);
+
   // Initialize form
-  const form = useForm({
-    defaultValues: formData
+  const methods = useForm({
+    defaultValues: formData,
   });
 
   useEffect(() => {
     if (!user) {
-      navigate('/auth');
+      navigate("/auth");
       return;
     }
 
@@ -63,14 +86,14 @@ const ContentEditor = () => {
         setTitle(data.title);
         setJsonContent(JSON.stringify(data.content, null, 2));
         setFormData(data.content || {});
-        form.reset(data.content || {}); // Reset form with content
+        methods.reset(data.content || {});
       }
     } catch (error: any) {
       setError(error.message);
       toast({
         title: t("error"),
         description: t("errorFetchingContent"),
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -79,13 +102,14 @@ const ContentEditor = () => {
 
   const handleSave = async () => {
     if (!pageKey) return;
-    
+
     setSaving(true);
     setError(null);
-    
+    setSaveSuccess(false);
+
     try {
       let contentToSave;
-      
+
       if (activeTab === "json") {
         try {
           contentToSave = JSON.parse(jsonContent);
@@ -94,7 +118,7 @@ const ContentEditor = () => {
           toast({
             title: t("error"),
             description: t("invalidJson"),
-            variant: "destructive"
+            variant: "destructive",
           });
           setSaving(false);
           return;
@@ -102,14 +126,19 @@ const ContentEditor = () => {
       } else {
         contentToSave = formData;
       }
-      
+
       const success = await updatePageContent(pageKey, contentToSave);
       if (success) {
+        setSaveSuccess(true);
         toast({
           title: t("success"),
           description: t("contentUpdated"),
         });
-        navigate("/admin/content");
+        
+        // Briefly show success message before navigating back
+        setTimeout(() => {
+          navigate("/admin/content");
+        }, 1500);
       } else {
         throw new Error(t("errorUpdatingContent"));
       }
@@ -118,7 +147,7 @@ const ContentEditor = () => {
       toast({
         title: t("error"),
         description: error.message,
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setSaving(false);
@@ -126,7 +155,7 @@ const ContentEditor = () => {
   };
 
   const handleFormChange = (field: string, value: any) => {
-    setFormData(prev => {
+    setFormData((prev) => {
       const updated = { ...prev, [field]: value };
       setJsonContent(JSON.stringify(updated, null, 2));
       return updated;
@@ -134,14 +163,17 @@ const ContentEditor = () => {
   };
 
   const handleAddNewsItem = () => {
-    setFormData(prev => {
-      const newsItems = [...(prev.newsItems || []), {
-        id: Date.now(),
-        title: "",
-        excerpt: "",
-        date: new Date().toISOString().split('T')[0],
-        image: ""
-      }];
+    setFormData((prev) => {
+      const newsItems = [
+        ...(prev.newsItems || []),
+        {
+          id: Date.now(),
+          title: "",
+          excerpt: "",
+          date: new Date().toISOString().split("T")[0],
+          image: "",
+        },
+      ];
       const updated = { ...prev, newsItems };
       setJsonContent(JSON.stringify(updated, null, 2));
       return updated;
@@ -149,7 +181,7 @@ const ContentEditor = () => {
   };
 
   const handleUpdateNewsItem = (index: number, field: string, value: any) => {
-    setFormData(prev => {
+    setFormData((prev) => {
       const newsItems = [...(prev.newsItems || [])];
       newsItems[index] = { ...newsItems[index], [field]: value };
       const updated = { ...prev, newsItems };
@@ -159,7 +191,7 @@ const ContentEditor = () => {
   };
 
   const handleRemoveNewsItem = (index: number) => {
-    setFormData(prev => {
+    setFormData((prev) => {
       const newsItems = [...(prev.newsItems || [])];
       newsItems.splice(index, 1);
       const updated = { ...prev, newsItems };
@@ -168,253 +200,673 @@ const ContentEditor = () => {
     });
   };
 
+  const getPageTitle = () => {
+    if (!pageKey) return "Éditeur de contenu";
+    return PAGE_KEYS[pageKey as keyof typeof PAGE_KEYS] || title;
+  };
+
+  const PAGE_KEYS = {
+    home: "Accueil",
+    school: "Notre École",
+    director: "Mot du Directeur",
+    history: "Histoire",
+    values: "Valeurs",
+    partnerships: "Partenariats",
+    programs: "Programmes Éducatifs",
+    preschool: "Maternelle",
+    primary: "Primaire",
+    news: "Actualités",
+    admissions: "Admissions",
+    contact: "Contact",
+  };
+
   const renderFormFields = () => {
-    if (pageKey === 'home') {
+    if (pageKey === "home") {
       return (
         <div className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="heroTitle">Titre Principal</Label>
-            <Input 
+            <Input
               id="heroTitle"
-              value={formData.heroTitle || ''} 
-              onChange={(e) => handleFormChange('heroTitle', e.target.value)} 
+              value={formData.heroTitle || ""}
+              onChange={(e) => handleFormChange("heroTitle", e.target.value)}
             />
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="heroSubtitle">Sous-titre</Label>
-            <Input 
+            <Input
               id="heroSubtitle"
-              value={formData.heroSubtitle || ''} 
-              onChange={(e) => handleFormChange('heroSubtitle', e.target.value)} 
+              value={formData.heroSubtitle || ""}
+              onChange={(e) => handleFormChange("heroSubtitle", e.target.value)}
             />
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="description">Description</Label>
-            <Textarea 
+            <Textarea
               id="description"
-              value={formData.description || ''} 
-              onChange={(e) => handleFormChange('description', e.target.value)}
+              value={formData.description || ""}
+              onChange={(e) => handleFormChange("description", e.target.value)}
               rows={4}
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="heroImageUrl">Image d'en-tête (URL)</Label>
+            <Input
+              id="heroImageUrl"
+              value={formData.heroImageUrl || ""}
+              onChange={(e) => handleFormChange("heroImageUrl", e.target.value)}
+              placeholder="https://example.com/image.jpg"
+            />
+            {formData.heroImageUrl && (
+              <div className="mt-2 border rounded-md p-2">
+                <img
+                  src={formData.heroImageUrl}
+                  alt="Aperçu"
+                  className="max-h-40 object-cover rounded"
+                />
+              </div>
+            )}
           </div>
         </div>
       );
     }
-    
-    if (pageKey === 'news') {
+
+    if (pageKey === "news") {
       return (
         <div className="space-y-8">
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-medium">Articles d'actualités</h3>
-            <Button 
+            <Button
               onClick={handleAddNewsItem}
               size="sm"
               className="flex items-center gap-1"
             >
-              <Plus size={16} /> Ajouter
+              <Plus size={16} /> Ajouter un article
             </Button>
           </div>
-          
+
+          {(formData.newsItems || []).length === 0 && (
+            <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+              Aucun article. Cliquez sur "Ajouter un article" pour commencer.
+            </div>
+          )}
+
           {(formData.newsItems || []).map((item: any, index: number) => (
-            <Card key={item.id} className="p-4 relative">
+            <Card key={item.id} className="relative">
               <Button
-                variant="ghost" 
+                variant="ghost"
                 size="sm"
                 className="absolute top-2 right-2 text-gray-400 hover:text-red-500"
                 onClick={() => handleRemoveNewsItem(index)}
               >
                 <Trash size={16} />
               </Button>
-              
-              <div className="space-y-4">
+
+              <CardContent className="pt-6 space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor={`title-${index}`}>Titre</Label>
-                  <Input 
+                  <Label htmlFor={`title-${index}`}>
+                    Titre de l'article {index + 1}
+                  </Label>
+                  <Input
                     id={`title-${index}`}
-                    value={item.title || ''} 
-                    onChange={(e) => handleUpdateNewsItem(index, 'title', e.target.value)} 
+                    value={item.title || ""}
+                    onChange={(e) =>
+                      handleUpdateNewsItem(index, "title", e.target.value)
+                    }
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor={`excerpt-${index}`}>Extrait</Label>
-                  <Textarea 
+                  <Textarea
                     id={`excerpt-${index}`}
-                    value={item.excerpt || ''} 
-                    onChange={(e) => handleUpdateNewsItem(index, 'excerpt', e.target.value)}
+                    value={item.excerpt || ""}
+                    onChange={(e) =>
+                      handleUpdateNewsItem(index, "excerpt", e.target.value)
+                    }
                     rows={3}
                   />
                 </div>
-                
-                <div className="grid grid-cols-2 gap-4">
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor={`date-${index}`}>Date</Label>
-                    <Input 
+                    <Input
                       id={`date-${index}`}
                       type="date"
-                      value={item.date || ''} 
-                      onChange={(e) => handleUpdateNewsItem(index, 'date', e.target.value)} 
+                      value={item.date || ""}
+                      onChange={(e) =>
+                        handleUpdateNewsItem(index, "date", e.target.value)
+                      }
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor={`image-${index}`}>Image URL</Label>
                     <div className="flex gap-2">
-                      <Input 
+                      <Input
                         id={`image-${index}`}
-                        value={item.image || ''} 
-                        onChange={(e) => handleUpdateNewsItem(index, 'image', e.target.value)} 
+                        value={item.image || ""}
+                        onChange={(e) =>
+                          handleUpdateNewsItem(index, "image", e.target.value)
+                        }
                         placeholder="https://example.com/image.jpg"
                       />
-                      <Button variant="outline" size="icon" title="Visualiser">
-                        <Image size={16} />
-                      </Button>
                     </div>
+                    {item.image && (
+                      <div className="mt-2 border rounded-md p-2">
+                        <img
+                          src={item.image}
+                          alt="Aperçu"
+                          className="max-h-32 object-cover rounded"
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
-              </div>
+              </CardContent>
             </Card>
           ))}
-          
-          {(formData.newsItems || []).length === 0 && (
-            <div className="text-center py-8 text-gray-500">
-              Aucun article. Cliquez sur "Ajouter" pour créer un article.
+        </div>
+      );
+    }
+
+    if (pageKey === "preschool" || pageKey === "primary") {
+      const programType = pageKey === "preschool" ? "Maternelle" : "Primaire";
+      const ageDefault = pageKey === "preschool" ? "3-5 ans" : "6-11 ans";
+      const classSizeDefault = pageKey === "preschool" ? "15-20 élèves" : "20-25 élèves";
+
+      return (
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="pageTitle">Titre de la page</Label>
+            <Input
+              id="pageTitle"
+              value={formData.pageTitle || programType}
+              onChange={(e) => handleFormChange("pageTitle", e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="description">Description générale</Label>
+            <Textarea
+              id="description"
+              value={formData.description || ""}
+              onChange={(e) => handleFormChange("description", e.target.value)}
+              rows={4}
+              placeholder={`Présentation du programme ${programType}`}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="approach">Approche pédagogique</Label>
+            <Textarea
+              id="approach"
+              value={formData.approach || ""}
+              onChange={(e) => handleFormChange("approach", e.target.value)}
+              rows={6}
+              placeholder="Décrivez votre approche pédagogique..."
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="ageRange">Tranche d'âge</Label>
+            <Input
+              id="ageRange"
+              value={formData.ageRange || ageDefault}
+              onChange={(e) => handleFormChange("ageRange", e.target.value)}
+              placeholder={ageDefault}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="classSize">Taille des classes</Label>
+            <Input
+              id="classSize"
+              value={formData.classSize || classSizeDefault}
+              onChange={(e) => handleFormChange("classSize", e.target.value)}
+              placeholder={classSizeDefault}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="programImage">Image principale (URL)</Label>
+            <Input
+              id="programImage"
+              value={formData.programImage || ""}
+              onChange={(e) => handleFormChange("programImage", e.target.value)}
+              placeholder="https://example.com/image.jpg"
+            />
+            {formData.programImage && (
+              <div className="mt-2 border rounded-md p-2">
+                <img
+                  src={formData.programImage}
+                  alt="Aperçu"
+                  className="max-h-40 object-cover rounded"
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    if (pageKey === "director") {
+      return (
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="directorName">Nom du Directeur</Label>
+            <Input
+              id="directorName"
+              value={formData.directorName || ""}
+              onChange={(e) => handleFormChange("directorName", e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="directorMessage">Message du Directeur</Label>
+            <Textarea
+              id="directorMessage"
+              value={formData.directorMessage || ""}
+              onChange={(e) => handleFormChange("directorMessage", e.target.value)}
+              rows={8}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="directorImage">Photo du Directeur (URL)</Label>
+            <Input
+              id="directorImage"
+              value={formData.directorImage || ""}
+              onChange={(e) => handleFormChange("directorImage", e.target.value)}
+              placeholder="https://example.com/image.jpg"
+            />
+            {formData.directorImage && (
+              <div className="mt-2 border rounded-md p-2">
+                <img
+                  src={formData.directorImage}
+                  alt="Aperçu"
+                  className="max-h-40 object-cover rounded"
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    if (pageKey === "history") {
+      return (
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="historyTitle">Titre</Label>
+            <Input
+              id="historyTitle"
+              value={formData.historyTitle || "Notre Histoire"}
+              onChange={(e) => handleFormChange("historyTitle", e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="historyContent">Contenu</Label>
+            <Textarea
+              id="historyContent"
+              value={formData.historyContent || ""}
+              onChange={(e) => handleFormChange("historyContent", e.target.value)}
+              rows={10}
+              placeholder="Racontez l'histoire de l'école..."
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="foundingYear">Année de fondation</Label>
+            <Input
+              id="foundingYear"
+              value={formData.foundingYear || ""}
+              onChange={(e) => handleFormChange("foundingYear", e.target.value)}
+              placeholder="Ex: 1985"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="historyImage">Image historique (URL)</Label>
+            <Input
+              id="historyImage"
+              value={formData.historyImage || ""}
+              onChange={(e) => handleFormChange("historyImage", e.target.value)}
+              placeholder="https://example.com/image.jpg"
+            />
+            {formData.historyImage && (
+              <div className="mt-2 border rounded-md p-2">
+                <img
+                  src={formData.historyImage}
+                  alt="Aperçu"
+                  className="max-h-40 object-cover rounded"
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    if (pageKey === "values") {
+      return (
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="valuesTitle">Titre</Label>
+            <Input
+              id="valuesTitle"
+              value={formData.valuesTitle || "Nos Valeurs"}
+              onChange={(e) => handleFormChange("valuesTitle", e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="valuesIntro">Introduction</Label>
+            <Textarea
+              id="valuesIntro"
+              value={formData.valuesIntro || ""}
+              onChange={(e) => handleFormChange("valuesIntro", e.target.value)}
+              rows={4}
+              placeholder="Introduction aux valeurs de l'école..."
+            />
+          </div>
+
+          <div>
+            <Label className="block mb-3">Nos valeurs principales</Label>
+            
+            {[1, 2, 3, 4].map(index => (
+              <div key={index} className="mb-4 p-4 border rounded-md">
+                <div className="space-y-2 mb-3">
+                  <Label htmlFor={`value${index}Title`}>Titre de la valeur {index}</Label>
+                  <Input
+                    id={`value${index}Title`}
+                    value={formData[`value${index}Title`] || ""}
+                    onChange={(e) => handleFormChange(`value${index}Title`, e.target.value)}
+                    placeholder="Ex: Excellence"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor={`value${index}Description`}>Description</Label>
+                  <Textarea
+                    id={`value${index}Description`}
+                    value={formData[`value${index}Description`] || ""}
+                    onChange={(e) => handleFormChange(`value${index}Description`, e.target.value)}
+                    rows={3}
+                    placeholder="Décrivez cette valeur..."
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    if (pageKey === "partnerships") {
+      return (
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="partnershipsTitle">Titre</Label>
+            <Input
+              id="partnershipsTitle"
+              value={formData.partnershipsTitle || "Nos Partenariats"}
+              onChange={(e) => handleFormChange("partnershipsTitle", e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="partnershipsIntro">Introduction</Label>
+            <Textarea
+              id="partnershipsIntro"
+              value={formData.partnershipsIntro || ""}
+              onChange={(e) => handleFormChange("partnershipsIntro", e.target.value)}
+              rows={4}
+            />
+          </div>
+
+          <div>
+            <div className="flex justify-between items-center mb-4">
+              <Label className="text-lg">Nos partenaires</Label>
+              <Button
+                onClick={() => {
+                  const partners = [...(formData.partners || []), { name: "", logo: "", description: "" }];
+                  handleFormChange("partners", partners);
+                }}
+                size="sm"
+                type="button"
+              >
+                <Plus size={16} className="mr-1" /> Ajouter un partenaire
+              </Button>
             </div>
-          )}
+
+            {(formData.partners || []).length === 0 && (
+              <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                Aucun partenaire. Cliquez sur "Ajouter un partenaire" pour commencer.
+              </div>
+            )}
+
+            {(formData.partners || []).map((partner: any, index: number) => (
+              <div key={index} className="mb-4 p-4 border rounded-md relative">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="absolute top-2 right-2 text-gray-400 hover:text-red-500"
+                  onClick={() => {
+                    const partners = [...(formData.partners || [])];
+                    partners.splice(index, 1);
+                    handleFormChange("partners", partners);
+                  }}
+                >
+                  <Trash size={16} />
+                </Button>
+
+                <div className="space-y-2 mt-3">
+                  <Label htmlFor={`partner${index}Name`}>Nom du partenaire</Label>
+                  <Input
+                    id={`partner${index}Name`}
+                    value={partner.name || ""}
+                    onChange={(e) => {
+                      const partners = [...(formData.partners || [])];
+                      partners[index] = { ...partners[index], name: e.target.value };
+                      handleFormChange("partners", partners);
+                    }}
+                  />
+                </div>
+
+                <div className="space-y-2 mt-3">
+                  <Label htmlFor={`partner${index}Logo`}>Logo (URL)</Label>
+                  <Input
+                    id={`partner${index}Logo`}
+                    value={partner.logo || ""}
+                    onChange={(e) => {
+                      const partners = [...(formData.partners || [])];
+                      partners[index] = { ...partners[index], logo: e.target.value };
+                      handleFormChange("partners", partners);
+                    }}
+                    placeholder="https://example.com/logo.png"
+                  />
+                  {partner.logo && (
+                    <div className="mt-2 border rounded-md p-2">
+                      <img
+                        src={partner.logo}
+                        alt="Aperçu du logo"
+                        className="max-h-16 object-contain"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-2 mt-3">
+                  <Label htmlFor={`partner${index}Description`}>Description</Label>
+                  <Textarea
+                    id={`partner${index}Description`}
+                    value={partner.description || ""}
+                    onChange={(e) => {
+                      const partners = [...(formData.partners || [])];
+                      partners[index] = { ...partners[index], description: e.target.value };
+                      handleFormChange("partners", partners);
+                    }}
+                    rows={3}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       );
     }
-    
-    if (pageKey === 'preschool') {
+
+    if (pageKey === "contact") {
       return (
         <div className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="pageTitle">Titre de la page</Label>
-            <Input 
-              id="pageTitle"
-              value={formData.pageTitle || ''} 
-              onChange={(e) => handleFormChange('pageTitle', e.target.value)} 
+            <Label htmlFor="contactTitle">Titre de la page</Label>
+            <Input
+              id="contactTitle"
+              value={formData.contactTitle || "Contactez-nous"}
+              onChange={(e) => handleFormChange("contactTitle", e.target.value)}
             />
           </div>
-          
+
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea 
-              id="description"
-              value={formData.description || ''} 
-              onChange={(e) => handleFormChange('description', e.target.value)}
+            <Label htmlFor="contactIntro">Message d'introduction</Label>
+            <Textarea
+              id="contactIntro"
+              value={formData.contactIntro || ""}
+              onChange={(e) => handleFormChange("contactIntro", e.target.value)}
               rows={4}
+              placeholder="Un message invitant les visiteurs à vous contacter..."
             />
           </div>
-          
+
           <div className="space-y-2">
-            <Label htmlFor="approach">Approche pédagogique</Label>
-            <Textarea 
-              id="approach"
-              value={formData.approach || ''} 
-              onChange={(e) => handleFormChange('approach', e.target.value)}
-              rows={6}
+            <Label htmlFor="address">Adresse</Label>
+            <Input
+              id="address"
+              value={formData.address || ""}
+              onChange={(e) => handleFormChange("address", e.target.value)}
+              placeholder="Adresse physique de l'école"
             />
           </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="ageRange">Tranche d'âge</Label>
-            <Input 
-              id="ageRange"
-              value={formData.ageRange || ''} 
-              onChange={(e) => handleFormChange('ageRange', e.target.value)} 
-              placeholder="Ex: 3-5 ans"
-            />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="phone">Téléphone</Label>
+              <Input
+                id="phone"
+                value={formData.phone || ""}
+                onChange={(e) => handleFormChange("phone", e.target.value)}
+                placeholder="+212 XXX XXX XXX"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                value={formData.email || ""}
+                onChange={(e) => handleFormChange("email", e.target.value)}
+                placeholder="contact@example.com"
+              />
+            </div>
           </div>
-          
+
           <div className="space-y-2">
-            <Label htmlFor="classSize">Taille des classes</Label>
-            <Input 
-              id="classSize"
-              value={formData.classSize || ''} 
-              onChange={(e) => handleFormChange('classSize', e.target.value)} 
-              placeholder="Ex: 15-20 élèves"
+            <Label htmlFor="mapLocation">Localisation Google Maps (lien embed)</Label>
+            <Input
+              id="mapLocation"
+              value={formData.mapLocation || ""}
+              onChange={(e) => handleFormChange("mapLocation", e.target.value)}
+              placeholder="https://maps.google.com/embed?..."
             />
           </div>
         </div>
       );
     }
-    
-    if (pageKey === 'primary') {
+
+    if (pageKey === "admissions") {
       return (
         <div className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="pageTitle">Titre de la page</Label>
-            <Input 
-              id="pageTitle"
-              value={formData.pageTitle || ''} 
-              onChange={(e) => handleFormChange('pageTitle', e.target.value)} 
+            <Label htmlFor="admissionsTitle">Titre de la page</Label>
+            <Input
+              id="admissionsTitle"
+              value={formData.admissionsTitle || "Admissions"}
+              onChange={(e) => handleFormChange("admissionsTitle", e.target.value)}
             />
           </div>
-          
+
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea 
-              id="description"
-              value={formData.description || ''} 
-              onChange={(e) => handleFormChange('description', e.target.value)}
+            <Label htmlFor="admissionsIntro">Introduction</Label>
+            <Textarea
+              id="admissionsIntro"
+              value={formData.admissionsIntro || ""}
+              onChange={(e) => handleFormChange("admissionsIntro", e.target.value)}
               rows={4}
+              placeholder="Informations générales sur le processus d'admission..."
             />
           </div>
-          
+
           <div className="space-y-2">
-            <Label htmlFor="approach">Approche pédagogique</Label>
-            <Textarea 
-              id="approach"
-              value={formData.approach || ''} 
-              onChange={(e) => handleFormChange('approach', e.target.value)}
+            <Label htmlFor="admissionSteps">Étapes d'admission</Label>
+            <Textarea
+              id="admissionSteps"
+              value={formData.admissionSteps || ""}
+              onChange={(e) => handleFormChange("admissionSteps", e.target.value)}
               rows={6}
+              placeholder="Décrivez les étapes du processus d'admission..."
             />
           </div>
-          
+
           <div className="space-y-2">
-            <Label htmlFor="ageRange">Tranche d'âge</Label>
-            <Input 
-              id="ageRange"
-              value={formData.ageRange || ''} 
-              onChange={(e) => handleFormChange('ageRange', e.target.value)} 
-              placeholder="Ex: 6-11 ans"
+            <Label htmlFor="requiredDocuments">Documents requis</Label>
+            <Textarea
+              id="requiredDocuments"
+              value={formData.requiredDocuments || ""}
+              onChange={(e) => handleFormChange("requiredDocuments", e.target.value)}
+              rows={4}
+              placeholder="Liste des documents nécessaires pour l'inscription..."
             />
           </div>
-          
+
           <div className="space-y-2">
-            <Label htmlFor="classSize">Taille des classes</Label>
-            <Input 
-              id="classSize"
-              value={formData.classSize || ''} 
-              onChange={(e) => handleFormChange('classSize', e.target.value)} 
-              placeholder="Ex: 20-25 élèves"
+            <Label htmlFor="feesAndTuition">Frais et scolarité</Label>
+            <Textarea
+              id="feesAndTuition"
+              value={formData.feesAndTuition || ""}
+              onChange={(e) => handleFormChange("feesAndTuition", e.target.value)}
+              rows={4}
+              placeholder="Informations sur les frais de scolarité et modalités de paiement..."
             />
           </div>
         </div>
       );
     }
-    
+
     // Default form for other pages
     return (
       <div className="space-y-6">
         <div className="space-y-2">
           <Label htmlFor="title">Titre</Label>
-          <Input 
+          <Input
             id="title"
-            value={formData.title || ''} 
-            onChange={(e) => handleFormChange('title', e.target.value)} 
+            value={formData.title || ""}
+            onChange={(e) => handleFormChange("title", e.target.value)}
           />
         </div>
-        
+
         <div className="space-y-2">
           <Label htmlFor="description">Description</Label>
-          <Textarea 
+          <Textarea
             id="description"
-            value={formData.description || ''} 
-            onChange={(e) => handleFormChange('description', e.target.value)}
+            value={formData.description || ""}
+            onChange={(e) => handleFormChange("description", e.target.value)}
             rows={6}
           />
         </div>
@@ -430,29 +882,61 @@ const ContentEditor = () => {
     <PageLayout>
       <div className="container-custom py-10">
         <div className="max-w-4xl mx-auto">
+          <Breadcrumb className="mb-6">
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink href="/admin">Tableau de bord</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbLink href="/admin/content">
+                  Gestion du contenu
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbLink>{getPageTitle()}</BreadcrumbLink>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+
           <div className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl font-bold text-elbilia-blue">
-              {t("editContent")}
+            <h1 className="text-2xl sm:text-3xl font-bold text-elbilia-blue">
+              {t("editContent")}: {getPageTitle()}
             </h1>
-            <div className="space-x-4">
-              <Button 
-                variant="outline" 
+            <div className="space-x-2 sm:space-x-4 flex">
+              <Button
+                variant="outline"
                 onClick={() => navigate("/admin/content")}
+                size="sm"
+                className="flex items-center"
               >
-                {t("cancel")}
+                <ChevronLeft className="h-4 w-4 mr-1" /> {t("cancel")}
               </Button>
-              <Button 
-                onClick={handleSave} 
+              <Button
+                onClick={handleSave}
                 disabled={saving || loading}
+                size="sm"
+                className="flex items-center"
               >
-                {saving ? t("saving") : t("saveChanges")}
+                <Save className="h-4 w-4 mr-1" /> {saving ? t("saving") : t("saveChanges")}
               </Button>
             </div>
           </div>
 
           {error && (
             <Alert variant="destructive" className="mb-6">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Erreur</AlertTitle>
               <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
+          {saveSuccess && (
+            <Alert className="mb-6 bg-green-50 text-green-800 border-green-200">
+              <CheckCircle2 className="h-4 w-4" />
+              <AlertTitle>Sauvegardé avec succès</AlertTitle>
+              <AlertDescription>Les modifications ont été enregistrées.</AlertDescription>
             </Alert>
           )}
 
@@ -463,49 +947,41 @@ const ContentEditor = () => {
           ) : (
             <Card>
               <CardContent className="pt-6">
-                <div className="space-y-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="title">{t("title")}</Label>
-                    <Input
-                      id="title"
-                      value={title}
-                      onChange={(e) => setTitle(e.target.value)}
-                      disabled
-                      placeholder={t("contentTitle")}
-                    />
-                  </div>
+                <Tabs defaultValue="visual" value={activeTab} onValueChange={setActiveTab}>
+                  <TabsList className="mb-6">
+                    <TabsTrigger value="visual">
+                      Éditeur Visuel
+                    </TabsTrigger>
+                    <TabsTrigger value="json">
+                      Mode JSON (Avancé)
+                    </TabsTrigger>
+                  </TabsList>
 
-                  <Tabs defaultValue="visual" value={activeTab} onValueChange={setActiveTab}>
-                    <TabsList>
-                      <TabsTrigger value="visual">Éditeur Visuel</TabsTrigger>
-                      <TabsTrigger value="json">Mode JSON (Avancé)</TabsTrigger>
-                    </TabsList>
-                    
-                    <TabsContent value="visual" className="pt-6">
-                      <Form {...form}>
-                        <div className="space-y-6">
-                          {renderFormFields()}
-                        </div>
+                  <TabsContent value="visual" className="pt-3">
+                    <FormProvider {...methods}>
+                      <Form {...methods}>
+                        <div className="space-y-6">{renderFormFields()}</div>
                       </Form>
-                    </TabsContent>
-                    
-                    <TabsContent value="json" className="pt-6">
-                      <div className="space-y-2">
-                        <Label htmlFor="content">{t("contentJson")}</Label>
-                        <Textarea
-                          id="content"
-                          value={jsonContent}
-                          onChange={(e) => setJsonContent(e.target.value)}
-                          className="min-h-[400px] font-mono"
-                          placeholder="{}"
-                        />
-                        <p className="text-sm text-gray-500">
-                          Mode expert: Éditez directement le JSON. Attention aux erreurs de syntaxe.
-                        </p>
-                      </div>
-                    </TabsContent>
-                  </Tabs>
-                </div>
+                    </FormProvider>
+                  </TabsContent>
+
+                  <TabsContent value="json" className="pt-3">
+                    <div className="space-y-2">
+                      <Label htmlFor="content">{t("contentJson")}</Label>
+                      <Textarea
+                        id="content"
+                        value={jsonContent}
+                        onChange={(e) => setJsonContent(e.target.value)}
+                        className="min-h-[400px] font-mono"
+                        placeholder="{}"
+                      />
+                      <p className="text-sm text-gray-500">
+                        Mode expert: Éditez directement le JSON. Attention aux
+                        erreurs de syntaxe.
+                      </p>
+                    </div>
+                  </TabsContent>
+                </Tabs>
               </CardContent>
             </Card>
           )}
