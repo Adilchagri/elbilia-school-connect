@@ -7,6 +7,7 @@ export interface PageContent {
   page_key: string;
   title: string;
   content: any;
+  status: 'draft' | 'published' | 'archived';
   updated_at: string;
   updated_by: string | null;
 }
@@ -65,14 +66,14 @@ export async function getAllPagesContent(): Promise<PageContent[]> {
 /**
  * Update content for a specific page
  */
-export async function updatePageContent(pageKey: string, content: any): Promise<boolean> {
+export async function updatePageContent(pageKey: string, content: any, status: 'draft' | 'published' | 'archived' = 'published'): Promise<boolean> {
   try {
     // Check if content exists first
     const existing = await getPageContent(pageKey);
     
     if (!existing) {
       // If content doesn't exist, create it
-      return createPageContent(pageKey, content);
+      return createPageContent(pageKey, content, status);
     }
     
     // If it exists, update it
@@ -80,6 +81,7 @@ export async function updatePageContent(pageKey: string, content: any): Promise<
       .from('page_content')
       .update({ 
         content, 
+        status,
         updated_at: new Date().toISOString(),
         updated_by: (await supabase.auth.getSession()).data.session?.user?.id
       })
@@ -100,7 +102,7 @@ export async function updatePageContent(pageKey: string, content: any): Promise<
 /**
  * Create new content for a page
  */
-export async function createPageContent(pageKey: string, content: any): Promise<boolean> {
+export async function createPageContent(pageKey: string, content: any, status: 'draft' | 'published' | 'archived' = 'published'): Promise<boolean> {
   try {
     const title = pageKey.charAt(0).toUpperCase() + pageKey.slice(1);
 
@@ -110,6 +112,7 @@ export async function createPageContent(pageKey: string, content: any): Promise<
         page_key: pageKey,
         title: title,
         content: content || {},
+        status: status,
         updated_at: new Date().toISOString(),
         updated_by: (await supabase.auth.getSession()).data.session?.user?.id
       });
@@ -149,6 +152,32 @@ export async function deletePageContent(pageKey: string): Promise<boolean> {
 }
 
 /**
+ * Update page content status
+ */
+export async function updatePageStatus(pageKey: string, status: 'draft' | 'published' | 'archived'): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('page_content')
+      .update({ 
+        status,
+        updated_at: new Date().toISOString(),
+        updated_by: (await supabase.auth.getSession()).data.session?.user?.id
+      })
+      .eq('page_key', pageKey);
+
+    if (error) {
+      console.error('Error updating page status:', error);
+      throw new Error(`Failed to update status: ${error.message}`);
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error in updatePageStatus:', error);
+    throw error;
+  }
+}
+
+/**
  * Create default content when a page has no content yet
  */
 async function createDefaultContent(pageKey: string): Promise<boolean> {
@@ -165,6 +194,7 @@ async function createDefaultContent(pageKey: string): Promise<boolean> {
         page_key: pageKey,
         title: title,
         content: contentData,
+        status: 'published' as const,
         updated_at: new Date().toISOString()
       });
 

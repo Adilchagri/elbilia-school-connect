@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -14,8 +15,6 @@ import ValuesPage from "./pages/school/ValuesPage";
 import PartnershipsPage from "./pages/school/PartnershipsPage";
 import PreschoolPage from "./pages/programs/PreschoolPage";
 import PrimaryPage from "./pages/programs/PrimaryPage";
-import MiddlePage from "./pages/programs/MiddlePage";
-import HighSchoolPage from "./pages/programs/HighSchoolPage";
 import NewsPage from "./pages/NewsPage";
 import AdmissionsPage from "./pages/AdmissionsPage";
 import ContactPage from "./pages/ContactPage";
@@ -49,8 +48,6 @@ const App = () => (
               
               <Route path="/preschool" element={<PreschoolPage />} />
               <Route path="/primary" element={<PrimaryPage />} />
-              <Route path="/middle" element={<MiddlePage />} />
-              <Route path="/high" element={<HighSchoolPage />} />
               
               <Route path="/news" element={<NewsPage />} />
               <Route path="/admissions" element={<AdmissionsPage />} />

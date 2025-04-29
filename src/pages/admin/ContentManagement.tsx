@@ -15,7 +15,17 @@ import { useToast } from "../../hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Edit, Search, FileText, ArrowUpDown, Plus, Trash } from "lucide-react";
+import { 
+  Edit, 
+  Search, 
+  FileText, 
+  ArrowUpDown, 
+  Plus, 
+  Trash, 
+  Eye, 
+  EyeOff, 
+  Archive
+} from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   Card,
@@ -24,7 +34,32 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { deletePageContent } from "@/lib/content";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { deletePageContent, updatePageStatus } from "@/lib/content";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface ContentSection {
   id: string;
@@ -56,8 +91,11 @@ const ContentManagement = () => {
   const [loading, setLoading] = useState(true);
   const [sections, setSections] = useState<ContentSection[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortKey, setSortKey] = useState<'title' | 'lastUpdated'>('title');
+  const [sortKey, setSortKey] = useState<'title' | 'lastUpdated' | 'status'>('title');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedPage, setSelectedPage] = useState<{key: string, title: string} | null>(null);
+  const [statusFilter, setStatusFilter] = useState<string>("all");
 
   useEffect(() => {
     fetchContent();
@@ -77,7 +115,7 @@ const ContentManagement = () => {
         id: item.id,
         page_key: item.page_key,
         title: PAGE_KEYS[item.page_key as keyof typeof PAGE_KEYS] || item.title,
-        status: "Published",
+        status: item.status || "published",
         lastUpdated: new Date(item.updated_at).toLocaleDateString()
       }));
 
@@ -97,22 +135,30 @@ const ContentManagement = () => {
     navigate(`/admin/content/edit?pageKey=${pageKey}`);
   };
 
-  const handleDelete = async (pageKey: string, title: string) => {
-    if (window.confirm(`Êtes-vous sûr de vouloir supprimer "${title}"?`)) {
-      try {
-        await deletePageContent(pageKey);
-        toast({
-          title: "Succès",
-          description: "Le contenu a été supprimé avec succès",
-        });
-        fetchContent();
-      } catch (error: any) {
-        toast({
-          title: "Erreur",
-          description: error.message,
-          variant: "destructive"
-        });
-      }
+  const handleDeleteClick = (pageKey: string, title: string) => {
+    setSelectedPage({key: pageKey, title: title});
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!selectedPage) return;
+    
+    try {
+      await deletePageContent(selectedPage.key);
+      toast({
+        title: "Succès",
+        description: "Le contenu a été supprimé avec succès",
+      });
+      fetchContent();
+    } catch (error: any) {
+      toast({
+        title: "Erreur",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setDeleteDialogOpen(false);
+      setSelectedPage(null);
     }
   };
 
@@ -123,7 +169,28 @@ const ContentManagement = () => {
     }
   };
 
-  const toggleSort = (key: 'title' | 'lastUpdated') => {
+  const handleStatusChange = async (pageKey: string, status: 'draft' | 'published' | 'archived') => {
+    try {
+      await updatePageStatus(pageKey, status);
+      toast({
+        title: "Succès",
+        description: `Le statut a été mis à jour vers ${
+          status === 'draft' ? 'Brouillon' : 
+          status === 'published' ? 'Publié' : 
+          'Archivé'
+        }`,
+      });
+      fetchContent();
+    } catch (error: any) {
+      toast({
+        title: "Erreur",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  };
+
+  const toggleSort = (key: 'title' | 'lastUpdated' | 'status') => {
     if (sortKey === key) {
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
     } else {
@@ -132,15 +199,49 @@ const ContentManagement = () => {
     }
   };
 
+  const getStatusBadge = (status: string) => {
+    switch(status) {
+      case 'draft':
+        return (
+          <Badge variant="outline" className="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 font-normal">
+            Brouillon
+          </Badge>
+        );
+      case 'published':
+        return (
+          <Badge variant="default" className="bg-green-100 hover:bg-green-200 text-green-800 font-normal">
+            Publié
+          </Badge>
+        );
+      case 'archived':
+        return (
+          <Badge variant="outline" className="bg-gray-100 hover:bg-gray-200 text-gray-800 font-normal">
+            Archivé
+          </Badge>
+        );
+      default:
+        return (
+          <Badge variant="default" className="bg-blue-100 hover:bg-blue-200 text-blue-800 font-normal">
+            {status}
+          </Badge>
+        );
+    }
+  };
+
   const filteredSections = sections
     .filter(section => 
-      section.title.toLowerCase().includes(searchTerm.toLowerCase())
+      section.title.toLowerCase().includes(searchTerm.toLowerCase()) && 
+      (statusFilter === 'all' || section.status === statusFilter)
     )
     .sort((a, b) => {
       if (sortKey === 'title') {
         return sortOrder === 'asc' 
           ? a.title.localeCompare(b.title) 
           : b.title.localeCompare(a.title);
+      } else if (sortKey === 'status') {
+        return sortOrder === 'asc' 
+          ? a.status.localeCompare(b.status) 
+          : b.status.localeCompare(a.status);
       } else {
         const dateA = new Date(a.lastUpdated).getTime();
         const dateB = new Date(b.lastUpdated).getTime();
@@ -163,15 +264,31 @@ const ContentManagement = () => {
                     {t("manageWebsiteContent")}
                   </CardDescription>
                 </div>
-                <div className="flex gap-2 items-center">
-                  <div className="relative w-full sm:w-64">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-                    <Input
-                      placeholder={t("searchPages")}
-                      className="pl-8 w-full"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
+                <div className="flex flex-col sm:flex-row gap-2 items-center">
+                  <div className="flex gap-2 w-full sm:w-auto">
+                    <div className="relative flex-1 sm:w-64">
+                      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+                      <Input
+                        placeholder={t("searchPages")}
+                        className="pl-8 w-full"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                      />
+                    </div>
+                    <Select 
+                      value={statusFilter} 
+                      onValueChange={(value) => setStatusFilter(value)}
+                    >
+                      <SelectTrigger className="w-[140px]">
+                        <SelectValue placeholder="Statut" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Tous</SelectItem>
+                        <SelectItem value="draft">Brouillon</SelectItem>
+                        <SelectItem value="published">Publié</SelectItem>
+                        <SelectItem value="archived">Archivé</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   <Button onClick={handleCreate}>
                     <Plus className="h-4 w-4 mr-1" />
@@ -212,7 +329,17 @@ const ContentManagement = () => {
                             )}
                           </div>
                         </TableHead>
-                        <TableHead>{t("status")}</TableHead>
+                        <TableHead 
+                          className="cursor-pointer"
+                          onClick={() => toggleSort('status')}
+                        >
+                          <div className="flex items-center gap-1">
+                            {t("status")}
+                            {sortKey === 'status' && (
+                              <ArrowUpDown className="h-3 w-3" />
+                            )}
+                          </div>
+                        </TableHead>
                         <TableHead className="text-right">{t("actions")}</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -228,12 +355,31 @@ const ContentManagement = () => {
                             </TableCell>
                             <TableCell>{section.lastUpdated}</TableCell>
                             <TableCell>
-                              <Badge variant="default" className="bg-green-100 hover:bg-green-200 text-green-800 font-normal">
-                                {section.status}
-                              </Badge>
+                              {getStatusBadge(section.status)}
                             </TableCell>
                             <TableCell className="text-right">
                               <div className="flex justify-end gap-2">
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="outline" size="sm">
+                                      {t("status")}
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={() => handleStatusChange(section.page_key, 'published')}>
+                                      <Eye className="mr-2 h-4 w-4" />
+                                      <span>Publier</span>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleStatusChange(section.page_key, 'draft')}>
+                                      <EyeOff className="mr-2 h-4 w-4" />
+                                      <span>Brouillon</span>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleStatusChange(section.page_key, 'archived')}>
+                                      <Archive className="mr-2 h-4 w-4" />
+                                      <span>Archiver</span>
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
                                 <Button
                                   onClick={() => handleEdit(section.page_key)}
                                   variant="outline"
@@ -243,7 +389,7 @@ const ContentManagement = () => {
                                   <Edit className="h-4 w-4 mr-1" /> {t("edit")}
                                 </Button>
                                 <Button
-                                  onClick={() => handleDelete(section.page_key, section.title)}
+                                  onClick={() => handleDeleteClick(section.page_key, section.title)}
                                   variant="outline"
                                   size="sm"
                                   className="text-red-600 hover:text-red-700 hover:bg-red-50"
@@ -267,6 +413,26 @@ const ContentManagement = () => {
               )}
             </CardContent>
           </Card>
+
+          <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Êtes-vous sûr de vouloir supprimer cette page?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Vous êtes sur le point de supprimer "{selectedPage?.title}". Cette action est irréversible.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Annuler</AlertDialogCancel>
+                <AlertDialogAction 
+                  onClick={handleDeleteConfirm}
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  Supprimer
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </div>
     </AdminLayout>

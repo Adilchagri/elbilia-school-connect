@@ -82,6 +82,7 @@ export type Database = {
           content: Json
           id: string
           page_key: string
+          status: Database["public"]["Enums"]["content_status"] | null
           title: string
           updated_at: string | null
           updated_by: string | null
@@ -90,6 +91,7 @@ export type Database = {
           content?: Json
           id?: string
           page_key: string
+          status?: Database["public"]["Enums"]["content_status"] | null
           title: string
           updated_at?: string | null
           updated_by?: string | null
@@ -98,6 +100,7 @@ export type Database = {
           content?: Json
           id?: string
           page_key?: string
+          status?: Database["public"]["Enums"]["content_status"] | null
           title?: string
           updated_at?: string | null
           updated_by?: string | null
@@ -160,7 +163,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      content_status: "draft" | "published" | "archived"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -275,6 +278,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      content_status: ["draft", "published", "archived"],
+    },
   },
 } as const
