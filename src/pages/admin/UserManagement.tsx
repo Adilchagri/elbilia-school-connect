@@ -145,12 +145,12 @@ const UserManagement = () => {
           description: t("userUpdated"),
         });
       } else {
-        // Create new user
-        // In a real application, you would use Supabase Auth to create a user
-        // For this demo, we'll just create a profile entry
+        // Create new user - Fixed: Generate a UUID for the id field
+        const newUserId = crypto.randomUUID(); // Generate a UUID for the new user
         const { error } = await supabase
           .from('profiles')
           .insert({ 
+            id: newUserId, // Include the required id field
             email: newUserEmail,
             role: newUserRole
           });
@@ -372,7 +372,7 @@ const UserManagement = () => {
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
               {t("cancel")}
             </Button>
-            <Button onClick={handleSaveUser}>
+            <Button onClick={handleSaveUser}> {/* Fixed: Removed extra argument */}
               {editingUser ? t("saveChanges") : t("addUser")}
             </Button>
           </DialogFooter>

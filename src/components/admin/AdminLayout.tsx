@@ -37,7 +37,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
           navigate('/auth');
         } else if (session && !user) {
           // Update user in context if session exists but user is not set
-          setUser?.(session.user);
+          setUser(session.user);
           setAuthChecked(true);
         } else {
           // Auth check is complete
@@ -62,7 +62,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
         if (event === 'SIGNED_OUT') {
           navigate('/auth');
         } else if (session?.user) {
-          setUser?.(session.user);
+          setUser(session.user);
           setAuthChecked(true);
         }
       }
