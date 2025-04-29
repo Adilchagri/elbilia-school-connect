@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import AdminLayout from "../../components/admin/AdminLayout";
 import { useLanguage } from "../../contexts/LanguageContext";
@@ -372,7 +371,7 @@ const UserManagement = () => {
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
               {t("cancel")}
             </Button>
-            <Button onClick={handleSaveUser}> {/* Fixed: Removed extra argument */}
+            <Button onClick={handleSaveUser}>
               {editingUser ? t("saveChanges") : t("addUser")}
             </Button>
           </DialogFooter>
