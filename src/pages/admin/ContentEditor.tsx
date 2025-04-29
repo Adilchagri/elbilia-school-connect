@@ -72,15 +72,25 @@ const ContentEditor = () => {
     setLoading(true);
     setError(null);
     try {
+      console.log(`Fetching content for page key: ${key}`);
       const data = await getPageContent(key);
+      console.log("Fetched content:", data);
+      
       if (data) {
         setContent(data);
         setTitle(data.title);
         setJsonContent(JSON.stringify(data.content, null, 2));
         setFormData(data.content || {});
         methods.reset(data.content || {});
+        console.log("Form data set:", data.content);
+      } else {
+        console.log("No content found for this page key");
+        setFormData({});
+        setJsonContent("{}");
+        methods.reset({});
       }
     } catch (error: any) {
+      console.error("Error fetching content:", error);
       setError(error.message);
       toast({
         title: t("error"),
@@ -119,6 +129,7 @@ const ContentEditor = () => {
         contentToSave = formData;
       }
 
+      console.log("Saving content:", contentToSave);
       const success = await updatePageContent(pageKey, contentToSave);
       if (success) {
         setSaveSuccess(true);
@@ -135,6 +146,7 @@ const ContentEditor = () => {
         throw new Error(t("errorUpdatingContent"));
       }
     } catch (error: any) {
+      console.error("Error saving content:", error);
       setError(error.message);
       toast({
         title: t("error"),
@@ -147,6 +159,7 @@ const ContentEditor = () => {
   };
 
   const handleFormChange = (field: string, value: any) => {
+    console.log(`Updating form field: ${field} with value:`, value);
     setFormData((prev) => {
       const updated = { ...prev, [field]: value };
       setJsonContent(JSON.stringify(updated, null, 2));

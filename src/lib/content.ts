@@ -17,6 +17,8 @@ export interface PageContent {
  */
 export async function getPageContent(pageKey: string): Promise<PageContent | null> {
   try {
+    console.log(`Fetching content for page ${pageKey}`);
+    
     const { data, error } = await supabase
       .from('page_content')
       .select('*')
@@ -28,8 +30,11 @@ export async function getPageContent(pageKey: string): Promise<PageContent | nul
       throw new Error(`Failed to fetch content: ${error.message}`);
     }
 
+    console.log(`Content retrieved for ${pageKey}:`, data);
+
     // If no content is found, create default content
     if (!data && defaultContent[pageKey as keyof typeof defaultContent]) {
+      console.log(`No content found for ${pageKey}, creating default content`);
       await createDefaultContent(pageKey);
       return getPageContent(pageKey);
     }
@@ -68,11 +73,14 @@ export async function getAllPagesContent(): Promise<PageContent[]> {
  */
 export async function updatePageContent(pageKey: string, content: any, status: 'draft' | 'published' | 'archived' = 'published'): Promise<boolean> {
   try {
+    console.log(`Updating content for page ${pageKey}`, { content, status });
+    
     // Check if content exists first
     const existing = await getPageContent(pageKey);
     
     if (!existing) {
       // If content doesn't exist, create it
+      console.log(`No existing content for ${pageKey}, creating new entry`);
       return createPageContent(pageKey, content, status);
     }
     
@@ -92,6 +100,7 @@ export async function updatePageContent(pageKey: string, content: any, status: '
       throw new Error(`Failed to update content: ${error.message}`);
     }
 
+    console.log(`Content successfully updated for ${pageKey}`);
     return true;
   } catch (error) {
     console.error('Error in updatePageContent:', error);
@@ -104,6 +113,8 @@ export async function updatePageContent(pageKey: string, content: any, status: '
  */
 export async function createPageContent(pageKey: string, content: any, status: 'draft' | 'published' | 'archived' = 'published'): Promise<boolean> {
   try {
+    console.log(`Creating new content for page ${pageKey}`, { content, status });
+    
     const title = pageKey.charAt(0).toUpperCase() + pageKey.slice(1);
 
     const { error } = await supabase
@@ -122,6 +133,7 @@ export async function createPageContent(pageKey: string, content: any, status: '
       throw new Error(`Failed to create content: ${error.message}`);
     }
 
+    console.log(`Content successfully created for ${pageKey}`);
     return true;
   } catch (error) {
     console.error('Error in createPageContent:', error);
@@ -134,6 +146,8 @@ export async function createPageContent(pageKey: string, content: any, status: '
  */
 export async function deletePageContent(pageKey: string): Promise<boolean> {
   try {
+    console.log(`Deleting content for page ${pageKey}`);
+    
     const { error } = await supabase
       .from('page_content')
       .delete()
@@ -144,6 +158,7 @@ export async function deletePageContent(pageKey: string): Promise<boolean> {
       throw new Error(`Failed to delete content: ${error.message}`);
     }
 
+    console.log(`Content successfully deleted for ${pageKey}`);
     return true;
   } catch (error) {
     console.error('Error in deletePageContent:', error);
@@ -156,6 +171,8 @@ export async function deletePageContent(pageKey: string): Promise<boolean> {
  */
 export async function updatePageStatus(pageKey: string, status: 'draft' | 'published' | 'archived'): Promise<boolean> {
   try {
+    console.log(`Updating status for page ${pageKey} to ${status}`);
+    
     const { error } = await supabase
       .from('page_content')
       .update({ 
@@ -170,6 +187,7 @@ export async function updatePageStatus(pageKey: string, status: 'draft' | 'publi
       throw new Error(`Failed to update status: ${error.message}`);
     }
 
+    console.log(`Status successfully updated for ${pageKey} to ${status}`);
     return true;
   } catch (error) {
     console.error('Error in updatePageStatus:', error);
@@ -188,6 +206,8 @@ async function createDefaultContent(pageKey: string): Promise<boolean> {
   const title = pageKey.charAt(0).toUpperCase() + pageKey.slice(1);
 
   try {
+    console.log(`Creating default content for ${pageKey}`);
+    
     const { error } = await supabase
       .from('page_content')
       .insert({
@@ -203,6 +223,7 @@ async function createDefaultContent(pageKey: string): Promise<boolean> {
       throw new Error(`Failed to create default content: ${error.message}`);
     }
 
+    console.log(`Default content successfully created for ${pageKey}`);
     return true;
   } catch (error) {
     console.error('Error in createDefaultContent:', error);
