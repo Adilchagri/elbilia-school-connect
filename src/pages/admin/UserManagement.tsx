@@ -390,7 +390,7 @@ const UserManagement = () => {
           <AlertDialogFooter>
             <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
             <AlertDialogAction 
-              onClick={handleConfirmDelete}
+              onClick={() => handleConfirmDelete()}
               className="bg-red-600 hover:bg-red-700"
             >
               {t("delete")}
